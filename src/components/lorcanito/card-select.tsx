@@ -9,7 +9,7 @@ export default function CardSelect(props: {
 
     return (
         <div className='bg-black bg-opacity-25 absolute top-0 right-0 bottom-0 left-0 flex justify-center items-center'>
-            <div className='p-5 flex gap-10 bg-neutral-800'>
+            <div className='p-5 flex gap-10 bg-neutral-800 min-w-96 border-neutral-100 rounded-lg'>
                 {props.inputStage.options.map(option =>
                     typeof option === "string" ? (
                         <Button
@@ -19,11 +19,7 @@ export default function CardSelect(props: {
                             {option}
                         </Button>
                     ) : (
-                        <CardComp
-                            key={option.id}
-                            card={option}
-                            onClick={() => props.inputStage?.callback(option)}
-                        />
+                        <CardComp key={option.id} card={option} />
                     )
                 )}
             </div>

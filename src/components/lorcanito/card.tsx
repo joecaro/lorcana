@@ -5,6 +5,7 @@ import { mix, motion } from "framer-motion";
 import { Card } from "@/lib/lorcanito/types/game";
 import { MagicCard } from "../card-maker";
 import { cn } from "@/lib/utils";
+import useGameStore from "@/lib/lorcanito/store";
 
 // const MOVE_THRESHOLD = 30; // Pixel threshold for movement detection
 
@@ -45,13 +46,22 @@ const CardUI: React.FC<{
 const CardComp: React.FC<{
     card: Card;
     hideCardDetails?: boolean;
-    highlighted?: boolean;
     square?: boolean;
     className?: string;
-    onClick?: () => void;
-}> = ({ card, hideCardDetails, highlighted, square, onClick, className }) => {
+}> = ({ card, hideCardDetails, square, className }) => {
     // const { attributes, listeners, setNodeRef, transform, isDragging } =
     // useDraggable({ id: card.id });
+
+    const inputStage = useGameStore(state => state.inputStage);
+
+    const isOption = (card: Card) =>
+        !!inputStage &&
+        !!inputStage.options.find(
+            c => typeof c === "object" && c.id === card.id
+        );
+
+        console.log(inputStage);
+        
 
     // const startPos = useRef<{ x: number; y: number } | null>(null);
     const cardRef = useRef<HTMLDivElement | null>(null);
@@ -69,7 +79,7 @@ const CardComp: React.FC<{
         e.preventDefault();
         // startPos.current = null;
 
-        if (onClick) onClick();
+        if (isOption(card)) inputStage?.callback(card);
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -124,7 +134,7 @@ const CardComp: React.FC<{
         height: square ? "7rem" : "10rem",
         border: "1px solid black",
         borderBottom: square ? "5px solid black" : "1px solid black",
-        boxShadow: `0 0 0 1px ${highlighted ? "green" : "#fff"}`,
+        boxShadow: `0 0 0 1px ${isOption(card) ? "green" : "#fff"}`,
         // ...motionStyle,
     };
 
@@ -182,8 +192,6 @@ const CardComp: React.FC<{
         // maskRepeat: "no-repeat", // Ensures the mask is not repeated
     };
 
-    const isFoil = useRef(Math.random() > 0.5);
-
     return (
         <motion.div
             id={"hand" + card.id}
@@ -216,12 +224,20 @@ const CardComp: React.FC<{
             transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
         >
             {/* Shine Layer */}
-            {isFoil && <div style={shineStyle}></div>}
+            {card.isFoil && <div style={shineStyle}></div>}
 
             {/* Glare Layer */}
-            {isFoil && <div style={glareStyle}></div>}
+            {card.isFoil && <div style={glareStyle}></div>}
 
             <CardUI card={card} hideCardDetails={hideCardDetails} />
+            {inputStage && isOption(card) && (
+                <div className='absolute top-0 left-0 w-full h-1/5 bg-black bg-opacity-50 rounded-lg'>
+                    {/* display index of option */}
+                    {inputStage.options.findIndex(
+                        c => typeof c === "object" && c.id === card.id
+                    ) + 1}
+                </div>
+            )}
         </motion.div>
     );
 };

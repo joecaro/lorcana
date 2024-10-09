@@ -54,14 +54,6 @@ const DropZone: React.FC<DropZoneProps> = ({
         >
             {cards.map((card, idx) => (
                 <CardComp
-                    highlighted={isOption(card)}
-                    onClick={() => {
-                        if (!inputStage) return;
-
-                        if (isOption(card)) {
-                            inputStage.callback(card);
-                        }
-                    }}
                     key={"drop" + id + card.id}
                     card={card}
                     hideCardDetails={hideCardDetails}

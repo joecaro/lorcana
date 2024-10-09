@@ -1,4 +1,11 @@
-import { Card, Event, GameState, MultipleCardAction, Zone } from "../../types/game";
+import {
+    Action,
+    Card,
+    Event,
+    GameState,
+    MultipleCardAction,
+    Zone,
+} from "../../types/game";
 
 export function drawCard(
     gameState: GameState,
@@ -35,6 +42,13 @@ export function findPontentialTargets(gameState: GameState): Card[] {
     return potentialTargets;
 }
 
+export function findHealableCards(gameState: GameState): Card[] {
+    const player = gameState.players[gameState.currentPlayer];
+    const healableCards = player.field.filter(card => card.willpower > 0);
+
+    return healableCards;
+}
+
 const excludedActions = ["end_game", "pass", "skip", "cancel", "draw"];
 
 export const computeAvailableActions = (state: GameState) => {
@@ -48,6 +62,7 @@ export const computeAvailableActions = (state: GameState) => {
         .flatMap(card => [
             card.actionChecks.play(state, card),
             card.actionChecks.ink(state, card),
+            card.actionChecks.ability(state, card),
         ])
         .filter(action => action !== null);
 
@@ -117,4 +132,22 @@ export function checkTriggers(
     });
 
     return gameState;
+}
+
+export function applyModifiers(
+    card: Card,
+    actionType: Action | "challenged",
+    baseStat: number,
+    statType: "strength" | "willpower" | "cost"
+): number {
+    const applicableModifiers = card.modifiers?.filter(
+        mod => mod.type === actionType && mod.stat === statType
+    );
+
+    return applicableModifiers
+        ? applicableModifiers.reduce(
+              (total, mod) => total + mod.value,
+              baseStat
+          )
+        : baseStat;
 }

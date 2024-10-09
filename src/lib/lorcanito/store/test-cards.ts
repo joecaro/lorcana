@@ -3,14 +3,14 @@ import {
     generateActions,
     generateTriggers,
 } from "./utils/cards";
-import { Card } from "../types/game";
-import { drawCard } from "./utils";
+import { BaseCard, Card, GameState } from "../types/game";
+import { drawCard, findHealableCards } from "./utils";
 import useGameStore from ".";
+import { moveToDiscard } from "./actions";
 
-const cards: Card[] = [
+const cards: BaseCard[] = [
     {
         implemented: true,
-        id: "1",
         url: "/cards/rainey.webp",
         name: "RAINEY",
         title: "Gentle Fetcher",
@@ -29,7 +29,41 @@ const cards: Card[] = [
         willpower: 3,
         lore: 2,
         actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
+        actions: generateActions({
+            ability: (gameState: GameState, thisCard: Card) => {
+                const healabeCards = findHealableCards(gameState);
+                if (healabeCards.length === 0) return gameState;
+                gameState.inputStage = {
+                    type: "play",
+                    options: healabeCards,
+                    prompt: "Choose a card to heal",
+                    callback: choice => {
+                        useGameStore.setState(state => {
+                            if (typeof choice === "string") return state;
+                            const player = state.players[state.currentPlayer];
+                            const target = player[choice.zone].find(
+                                card => card.id === choice.id
+                            );
+                            if (!target) return state;
+
+                            player[choice.zone] = player[choice.zone].map(
+                                card =>
+                                    card.id === choice.id
+                                        ? {
+                                              ...card,
+                                              strength: card.strength + 1,
+                                          }
+                                        : card
+                            );
+
+                            state.inputStage = null;
+                            return { ...state };
+                        });
+                    },
+                };
+                return gameState;
+            },
+        }),
         triggers: generateTriggers({
             play: (gameState, thisCard, thatCard) => {
                 if (thatCard?.id === thisCard.id) {
@@ -43,16 +77,16 @@ const cards: Card[] = [
         number: 1,
         set: "JSC",
         rarity: "uncommon",
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "1",
         url: "/cards/storm-enchanter.webp",
         name: "STORM ENCHANTER",
         title: "Master of the Elements",
         characteristics: ["storyborn", "sorcerer"],
         text: [
-            "**Stormborn** - This character gains +1 willpower when attacking.",
+            "**Stormborn** - This character gains +1 willpower when challenging.",
         ],
         type: "character",
         flavour:
@@ -71,10 +105,17 @@ const cards: Card[] = [
         number: 1,
         set: "TFC",
         rarity: "uncommon",
+        modifiers: [
+            {
+                value: 1,
+                duration: "until_action",
+                stat: "willpower",
+                type: "challenge",
+            },
+        ],
     },
     {
         implemented: true,
-        id: "9",
         url: "/cards/dark-ritual.webp",
         name: "DARK RITUAL",
         title: "Sinister Spell",
@@ -91,19 +132,99 @@ const cards: Card[] = [
         strength: 0, // Actions do not have inherent strength
         willpower: 0, // Actions do not have inherent willpower
         lore: 0, // Actions generally do not contribute to lore directly
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
+        actionChecks: generateActionChecks({
+            ability: (gameState, thisCard) => {
+                if (
+                    gameState.players[gameState.currentPlayer].field.length <
+                        2 ||
+                    gameState.players[(gameState.currentPlayer + 1) % 2].field
+                        .length === 0
+                ) {
+                    console.log("Not enough characters to sacrifice");
+
+                    return null;
+                }
+                return {
+                    type: "ability",
+                    card: thisCard,
+                };
+            },
+        }),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                gameState.inputStage = {
+                    type: "ability",
+                    options: gameState.players[gameState.currentPlayer].field,
+                    maxSelections: 1,
+                    prompt: "Choose a character to sacrifice",
+                    callback: choice => {
+                        useGameStore.setState(state => {
+                            if (typeof choice === "string") return state;
+                            const player = state.players[state.currentPlayer];
+                            const target = player[choice.zone].find(
+                                card => card.id === choice.id
+                            );
+                            if (!target) return state;
+
+                            player[choice.zone] = player[choice.zone].map(
+                                card =>
+                                    card.id === choice.id
+                                        ? {
+                                              ...card,
+                                              strength: card.strength - 2,
+                                          }
+                                        : card
+                            );
+
+                            state.inputStage = {
+                                type: "play",
+                                options:
+                                    state.players[(state.currentPlayer + 1) % 2]
+                                        .field,
+                                maxSelections: 1,
+                                prompt: "Choose a character to damage",
+                                callback: choice => {
+                                    useGameStore.setState(state => {
+                                        if (typeof choice === "string")
+                                            return state;
+                                        const target = state.players[
+                                            (state.currentPlayer + 1) % 2
+                                        ].field.find(
+                                            card => card.id === choice.id
+                                        );
+                                        if (!target) return state;
+
+                                        target.strength -= 4;
+
+                                        if (target.strength <= 0) {
+                                            state.players = moveToDiscard(
+                                                state,
+                                                target
+                                            );
+                                        }
+
+                                        return { ...state };
+                                    });
+                                },
+                            };
+                            return { ...state };
+                        });
+                    },
+                };
+
+                return { ...gameState };
+            },
+        }),
         triggers: generateTriggers({}),
         illustrator: "GPT4o",
         language: "EN",
         number: 9,
         set: "JSC",
         rarity: "uncommon",
-        exerted: false,
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "8",
         url: "/cards/celestial-beacon.webp",
         name: "CELESTIAL BEACON",
         title: "Radiant Artifact",
@@ -128,11 +249,10 @@ const cards: Card[] = [
         number: 8,
         set: "JSC",
         rarity: "rare",
-        exerted: false,
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "7",
         url: "/cards/elven-scout.webp",
         name: "ELVEN SCOUT",
         title: "Nimble Tracker",
@@ -193,11 +313,10 @@ const cards: Card[] = [
         number: 7,
         set: "JSC",
         rarity: "common",
-        exerted: false,
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "1",
         url: "/cards/knight-of-valor.webp",
         name: "KNIGHT OF VALOR",
         title: "Noble Warrior",
@@ -222,10 +341,10 @@ const cards: Card[] = [
         number: 1,
         set: "TFC",
         rarity: "uncommon",
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "6",
         url: "/cards/blade-of-fury.webp",
         name: "BLADE OF FURY",
         title: "Enchanted Weapon",
@@ -250,11 +369,10 @@ const cards: Card[] = [
         number: 6,
         set: "JSC",
         rarity: "rare",
-        exerted: false,
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "5",
         url: "/cards/ancient-protector.webp",
         name: "ANCIENT PROTECTOR",
         title: "Guardian of the Old Realms",
@@ -279,11 +397,10 @@ const cards: Card[] = [
         number: 5,
         set: "JSC",
         rarity: "rare",
-        exerted: false,
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "1",
         url: "/cards/arcane-aprentice.webp",
         name: "ARCANE APRENTICE",
         title: "Mystic Mage",
@@ -308,10 +425,10 @@ const cards: Card[] = [
         number: 1,
         set: "TFC",
         rarity: "uncommon",
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "3",
         url: "/cards/flamecaster.webp",
         name: "FLAMECASTER",
         title: "Fiery Fiend",
@@ -336,10 +453,10 @@ const cards: Card[] = [
         number: 1,
         set: "TFC",
         rarity: "uncommon",
+        modifiers: [],
     },
     {
         implemented: true,
-        id: "4",
         url: "/cards/beacon.webp",
         name: "BEACON",
         title: "Guiding Light",
@@ -366,6 +483,7 @@ const cards: Card[] = [
         number: 2,
         set: "JSC",
         rarity: "legendary",
+        modifiers: [],
     },
 ];
 

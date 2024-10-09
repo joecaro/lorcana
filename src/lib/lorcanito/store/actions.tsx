@@ -162,11 +162,19 @@ function chooseAbility() {
             const abilityCards = player.field.filter(
                 card => card.actionChecks.ability(gameState, card) !== null
             );
+            const actionCards = player.hand.filter(card => {
+                console.log(card.name);
+                console.log(card.actionChecks.ability(gameState, card));
+                return card.actionChecks.ability(gameState, card) !== null;
+            });
+
+            console.log(abilityCards);
+            console.log(actionCards);
 
             gameState.inputStage = {
                 prompt: "Select a card to exert:",
                 type: "ability",
-                options: abilityCards,
+                options: [...abilityCards, ...actionCards],
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {

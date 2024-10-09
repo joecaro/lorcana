@@ -1,13 +1,22 @@
-import { findPontentialTargets } from ".";
+import { applyModifiers, findPontentialTargets } from ".";
 import useGameStore from "..";
-import { Card, CardAction, GameState } from "../../types/game";
+import {
+    Action,
+    BaseCard,
+    Card,
+    CardAction,
+    Event,
+    GameState,
+} from "../../types/game";
 import { moveToDiscard } from "../actions";
 
 export function generateActionChecks(
-    overrides: Record<
-        string,
-        (gameState: GameState, thisCards: Card) => CardAction | null
-    >
+    overrides: Partial<
+        Record<
+            Action,
+            (gameState: GameState, thisCards: Card) => CardAction | null
+        >
+    > = {}
 ): Card["actionChecks"] {
     return {
         play: (gameState: GameState, thisCard: Card) => {
@@ -23,7 +32,7 @@ export function generateActionChecks(
             if (
                 !thisCard.lore ||
                 thisCard.exerted ||
-                (thisCard.roundPlayed !== undefined &&
+                (thisCard.roundPlayed !== null &&
                     thisCard.roundPlayed >= _.round)
             ) {
                 return null;
@@ -50,11 +59,16 @@ export function generateActionChecks(
             return { type: "ink", card: thisCard };
         },
         ability: (_: GameState, thisCard: Card) => {
-            if (
-                thisCard.exerted ||
-                (thisCard.roundPlayed !== undefined &&
-                    thisCard.roundPlayed >= _.round)
-            ) {
+            const inkDrying =
+                thisCard.roundPlayed !== null &&
+                thisCard.roundPlayed >= _.round;
+            const isAction = thisCard.type === "action";
+            const player = _.players[_.currentPlayer];
+
+            if (isAction && player.availableInk < thisCard.cost) {
+                return { type: "ability", card: thisCard };
+            }
+            if (thisCard.exerted || inkDrying || thisCard.zone !== "field") {
                 return null;
             }
             return { type: "ability", card: thisCard };
@@ -74,10 +88,9 @@ export function generateActionChecks(
 }
 
 export function generateActions(
-    overrides: Record<
-        string,
-        (gameState: GameState, thisCard: Card) => GameState
-    >
+    overrides: Partial<
+        Record<Action, (gameState: GameState, thisCard: Card) => GameState>
+    > = {}
 ): Card["actions"] {
     return {
         ink: (gameState: GameState, thisCard: Card) => {
@@ -92,7 +105,7 @@ export function generateActions(
 
             gameState.players = gameState.players.map(player => {
                 if (player.id === gameState.attacker) {
-                    player.inkwell.push(card);
+                    player.inkwell.push({ ...card, zone: "inkwell" });
                     player.hand = gameState.players[
                         gameState.currentPlayer
                     ].hand.filter(card => card.id !== thisCard.id);
@@ -121,6 +134,7 @@ export function generateActions(
                     player.field.push({
                         ...card,
                         roundPlayed: gameState.round,
+                        zone: "field",
                     });
                     player.hand = gameState.players[
                         gameState.currentPlayer
@@ -169,12 +183,38 @@ export function generateActions(
                             return state;
                         }
 
+                        // Apply modifiers to the strength and willpower stats before calculating damage
+                        const modifiedStrength = applyModifiers(
+                            thisCard,
+                            "challenge",
+                            thisCard.strength,
+                            "strength"
+                        );
+                        const modifiedWillpower = applyModifiers(
+                            targetCard,
+                            "challenge",
+                            targetCard.willpower,
+                            "willpower"
+                        );
+
+                        const modifiedTargetWillpower = applyModifiers(
+                            targetCard,
+                            "challenged",
+                            targetCard.willpower,
+                            "willpower"
+                        );
+                        const modifiedTargetStrength = applyModifiers(
+                            targetCard,
+                            "challenged",
+                            targetCard.strength,
+                            "strength"
+                        );
+
+                        // Calculate the damage dealt and taken
                         const damageDealt =
-                            thisCard.strength +
-                            (thisCard.strengthModifier || 0);
+                            modifiedStrength - modifiedTargetWillpower;
                         const damageTaken =
-                            targetCard.willpower +
-                            (targetCard.willpowerModifier || 0);
+                            modifiedTargetStrength - modifiedWillpower;
 
                         // Apply damage to the target and attacker
                         targetCard.strength -= damageDealt;
@@ -238,10 +278,12 @@ export function generateActions(
 }
 
 export function generateTriggers(
-    overrides: Record<
-        string,
-        (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
-    >
+    overrides: Partial<
+        Record<
+            Event,
+            (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
+        >
+    > = {}
 ): Card["triggers"] {
     return {
         play: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
@@ -291,17 +333,20 @@ export function generateTriggers(
     };
 }
 
-export function create(card: Card, ownerId: string) {
+export function create(card: BaseCard, ownerId: string): Card {
     return {
         ...card,
         id: Math.random().toString(36),
         owner: ownerId,
-        actionChecks: generateActionChecks(card.actionChecks),
-        actions: generateActions(card.actions),
-        triggers: generateTriggers(card.triggers),
+        exerted: false,
+        zone: "deck",
+        roundPlayed: null,
+        strengthModifier: 0,
+        willpowerModifier: 0,
+        isFoil: Math.random() < 0.4,
     };
 }
 
-export function createCards(cards: Card[], ownerId: string): Card[] {
+export function createCards(cards: BaseCard[], ownerId: string): Card[] {
     return cards.map(c => create(c, ownerId));
 }

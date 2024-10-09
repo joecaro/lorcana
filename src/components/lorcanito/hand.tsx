@@ -18,13 +18,6 @@ const Hand: React.FC<DropZoneProps> = ({ className }) => {
     const players = useGameStore(state => state.players);
     const currentPlayerIndex = useGameStore(state => state.currentPlayer);
     const hand = players[currentPlayerIndex].hand;
-    const inputStage = useGameStore(state => state.inputStage);
-
-    const isOption = (card: Card) =>
-        !!inputStage &&
-        !!inputStage.options.find(
-            c => typeof c === "object" && c.id === card.id
-        );
 
     const cardCount = hand.length;
     const maxRotation = 15; // Maximum rotation angle for the cards
@@ -68,25 +61,7 @@ const Hand: React.FC<DropZoneProps> = ({ className }) => {
                     >
                         <CardComp
                             card={card}
-                            highlighted={isOption(card)}
-                            onClick={() => {
-                                if (!inputStage) return;
-
-                                if (isOption(card)) {
-                                    inputStage.callback(card);
-                                }
-                            }}
                         />
-                        {inputStage && isOption(card) && (
-                            <div className='absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-lg'>
-                                {/* display index of option */}
-                                {inputStage.options.findIndex(
-                                    c =>
-                                        typeof c === "object" &&
-                                        c.id === card.id
-                                ) + 1}
-                            </div>
-                        )}
                     </motion.div>
                 );
             })}

@@ -37,9 +37,15 @@ export type Player = {
     isHuman: boolean; // If the player is human or AI
 };
 
-export type Card = {
+export type Modifier = {
+    type: Action; // The action this modifier applies to (e.g., "challenge")
+    stat: 'strength' | 'willpower' | 'cost'; // The stat being modified
+    value: number; // The value of the modifier
+    duration: 'until_end_of_turn' | 'until_action'; // When the modifier expires
+};
+
+export type BaseCard = {
     implemented: boolean; // Whether the card is fully implemented
-    id: string; // Unique identifier for the card
     url: string; // URL for the card image or information
     name: string; // Card's name
     title: string; // Subtitle or title of the card
@@ -58,7 +64,7 @@ export type Card = {
     number: number; // Card number in the set
     set: string; // Set identifier
     rarity: Rarity; // Rarity of the card
-    exerted?: boolean; // Whether the card is exerted (used in current turn)
+    modifiers: Modifier[]; // Modifiers that affect the card
     actionChecks: Record<
         string,
         (gameState: GameState, thisCard: Card) => CardAction | null
@@ -71,11 +77,17 @@ export type Card = {
         Event,
         (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
     >; // Triggers associated with the card
-    zone?: Zone; // Current zone of the card
-    roundPlayed?: number; // Round in which the card was played
-    owner?: string; // Player ID of the card owner
-    strengthModifier?: number; // Temporary strength modifier
-    willpowerModifier?: number; // Temporary willpower modifier
+};
+
+export type Card = BaseCard & {
+    id: string; // Unique identifier for the card
+    exerted: boolean; // Whether the card is exerted (used in current turn)
+    zone: Zone; // Current zone of the card
+    owner: string; // Player ID of the card owner
+    roundPlayed: number | null; // Round in which the card was played
+    strengthModifier: number; // Temporary strength modifier
+    willpowerModifier: number; // Temporary willpower modifier
+    isFoil: boolean; // Whether the card is a foil version
 };
 
 export type Zone = "deck" | "hand" | "field" | "discard" | "inkwell";
@@ -92,11 +104,7 @@ export type Action =
     | "pass"
     | "cancel";
 
-export type Event = 
-    | Action
-    | "start_phase"
-    | "main_phase"
-    | "end_phase"
+export type Event = Action | "start_phase" | "main_phase" | "end_phase";
 
 export type CardAction = {
     type: Action;
