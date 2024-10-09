@@ -11,8 +11,10 @@ const MyApp = () => {
                 rarity='rare'
                 name='ANCIENT PROTECTOR'
                 title='Beloved Hero'
-                strength='6'
-                willpower='5'
+                strength={6}
+                strengthModifier={-2}
+                willpower={5}
+                willpowerModifier={1}
                 descriptions={[
                     "**Bodygaurd** (this character may enter play exerted and opposing character who challenges one of your characters must choose one with Bodyguard if able.)",
                     "**Resist** +1 (damage deal to this character is reduced by 1.)",
@@ -47,6 +49,8 @@ const MyApp = () => {
                     cost: 5,
                     strength: 4,
                     willpower: 3,
+                    willpowerModifier: -1,
+                    strengthModifier: 2,
                     lore: 2,
                     illustrator: "GPT4o",
                     language: "EN",

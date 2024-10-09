@@ -11,8 +11,10 @@ export interface CardProps {
     title: string;
     type: string;
     cardCost: string;
-    willpower: string;
-    strength: string;
+    willpower: number;
+    willpowerModifier: number;
+    strength: number;
+    strengthModifier: number;
     descriptions: string[];
     flavorText?: string[];
     artUrl?: string;
@@ -186,10 +188,15 @@ const MagicCard: React.FC<CardProps> = props => {
                                 />
                                 <span
                                     className={cn(
-                                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  text-3xl text-[7px] text-neutral-900"
+                                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  text-3xl text-[7px] text-neutral-900",
+                                        props.willpowerModifier > 0
+                                            ? "text-blue-600"
+                                            : props.willpowerModifier < 0
+                                            ? "text-red-500"
+                                            : ""
                                     )}
                                 >
-                                    {props.willpower}
+                                    {props.willpower + props.willpowerModifier}
                                 </span>
                             </div>
                             <div className='relative'>
@@ -199,8 +206,17 @@ const MagicCard: React.FC<CardProps> = props => {
                                     strokeWidth={1}
                                     className={cn(darkSvg)}
                                 />
-                                <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[7px]'>
-                                    {props.strength}
+                                <span
+                                    className={cn(
+                                        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[7px]",
+                                        props.strengthModifier > 0
+                                            ? "text-blue-300"
+                                            : props.strengthModifier < 0
+                                            ? "text-red-300"
+                                            : ""
+                                    )}
+                                >
+                                    {props.strength + props.strengthModifier}
                                 </span>
                             </div>
                         </div>

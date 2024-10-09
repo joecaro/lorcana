@@ -40,7 +40,11 @@ const cards: BaseCard[] = [
                     callback: choice => {
                         useGameStore.setState(
                             state => {
-                                if (typeof choice === "string") return state;
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                )
+                                    return state;
                                 const player =
                                     state.players[state.currentPlayer];
                                 const target = player[choice.zone].find(
@@ -81,7 +85,7 @@ const cards: BaseCard[] = [
         language: "EN",
         number: 1,
         set: "JSC",
-        rarity: "uncommon",
+        rarity: "legendary",
         modifiers: [],
     },
     {
@@ -113,9 +117,11 @@ const cards: BaseCard[] = [
         modifiers: [
             {
                 value: 1,
-                duration: "until_action",
+                duration: "permanent",
                 stat: "willpower",
                 type: "challenge",
+                turnApplied: 0,
+                hasTriggered: false,
             },
         ],
     },
@@ -165,7 +171,11 @@ const cards: BaseCard[] = [
                     callback: choice => {
                         useGameStore.setState(
                             state => {
-                                if (typeof choice === "string") return state;
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                )
+                                    return state;
                                 const player =
                                     state.players[state.currentPlayer];
                                 const target = player[choice.zone].find(
@@ -173,15 +183,14 @@ const cards: BaseCard[] = [
                                 );
                                 if (!target) return state;
 
-                                player[choice.zone] = player[choice.zone].map(
-                                    card =>
-                                        card.id === choice.id
-                                            ? {
-                                                  ...card,
-                                                  strength: card.strength - 2,
-                                              }
-                                            : card
-                                );
+                                target.strength -= 2;
+
+                                if (target.strength <= 0) {
+                                    state.players = moveToDiscard(
+                                        state,
+                                        target
+                                    );
+                                }
 
                                 state.inputStage = {
                                     type: "play",
@@ -194,7 +203,11 @@ const cards: BaseCard[] = [
                                     callback: choice => {
                                         useGameStore.setState(
                                             state => {
-                                                if (typeof choice === "string")
+                                                if (
+                                                    typeof choice ===
+                                                        "string" ||
+                                                    Array.isArray(choice)
+                                                )
                                                     return state;
                                                 const target = state.players[
                                                     (state.currentPlayer + 1) %
@@ -328,7 +341,10 @@ const cards: BaseCard[] = [
                         callback: choice => {
                             useGameStore.setState(
                                 state => {
-                                    if (typeof choice === "string")
+                                    if (
+                                        typeof choice === "string" ||
+                                        Array.isArray(choice)
+                                    )
                                         return gameState;
                                     state.players[
                                         state.currentPlayer
@@ -388,9 +404,11 @@ const cards: BaseCard[] = [
         modifiers: [
             {
                 value: 1,
-                duration: "until_end_of_turn",
+                duration: "permanent",
                 stat: "willpower",
                 type: "challenge",
+                turnApplied: 0,
+                hasTriggered: false,
             },
         ],
     },
@@ -427,7 +445,11 @@ const cards: BaseCard[] = [
                     callback: choice => {
                         useGameStore.setState(
                             state => {
-                                if (typeof choice === "string") return state;
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                )
+                                    return state;
                                 const player =
                                     state.players[state.currentPlayer];
                                 const target = player[choice.zone].find(
@@ -489,7 +511,7 @@ const cards: BaseCard[] = [
                 if (thatCard?.id === thisCard.id) {
                     gameState.players[gameState.currentPlayer].field.forEach(
                         card => {
-                            card.willpower += 1;
+                            card.willpowerModifier += 1;
                         }
                     );
                 }
@@ -500,7 +522,7 @@ const cards: BaseCard[] = [
                 if (thatCard?.id === thisCard.id) {
                     gameState.players[gameState.currentPlayer].field.forEach(
                         card => {
-                            card.willpower -= 1;
+                            card.willpowerModifier -= 1;
                         }
                     );
                 }
@@ -581,7 +603,10 @@ const cards: BaseCard[] = [
                                         .field,
                                 prompt: "Choose a character to damage",
                                 callback: choice => {
-                                    if (typeof choice === "string")
+                                    if (
+                                        typeof choice === "string" ||
+                                        Array.isArray(choice)
+                                    )
                                         return state;
                                     const target = state.players[
                                         (state.currentPlayer + 1) % 2
@@ -650,7 +675,11 @@ const cards: BaseCard[] = [
                     callback: choice => {
                         useGameStore.setState(
                             state => {
-                                if (typeof choice === "string") return state;
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                )
+                                    return state;
                                 const target = state.players[
                                     state.currentPlayer === 0 ? 1 : 0
                                 ].field.find(card => card.id === choice.id);
@@ -697,7 +726,11 @@ const cards: BaseCard[] = [
                         prompt: "Choose a character to heal",
                         callback: choice => {
                             useGameStore.setState(state => {
-                                if (typeof choice === "string") return state;
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                )
+                                    return state;
                                 const target = state.players[
                                     state.currentPlayer
                                 ].field.find(card => card.id === choice.id);
@@ -718,6 +751,248 @@ const cards: BaseCard[] = [
         set: "JSC",
         rarity: "legendary",
         modifiers: [],
+    },
+    {
+        implemented: true,
+        url: "/cards/frost-warden.webp",
+        name: "FROST WARDEN",
+        title: "Guardian of the Frozen Realm",
+        characteristics: ["storyborn", "warden"],
+        text: [
+            "**Frozen Shield** - When this character enters play, prevent the next 2 damage dealt to any friendly character.",
+        ],
+        type: "character",
+        flavour:
+            "Standing against the tide of chaos, the Frost Warden protects all under its watch.",
+        inkwell: true,
+        color: "sapphire",
+        cost: 4,
+        strength: 2,
+        willpower: 5,
+        lore: 2,
+        actionChecks: generateActionChecks({}),
+        actions: generateActions({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[gameState.currentPlayer].field.forEach(
+                        card => {
+                            card.modifiers.push({
+                                value: 2,
+                                duration: "until_damage_received",
+                                stat: "strength",
+                                type: "challenge",
+                                turnApplied: gameState.turn,
+                                hasTriggered: false,
+                            });
+                        }
+                    );
+                }
+                return { ...gameState };
+            },
+        }),
+        illustrator: "GPT4o",
+        language: "EN",
+        number: 10,
+        set: "JSC",
+        rarity: "uncommon",
+        modifiers: [],
+    },
+    {
+        implemented: true,
+        url: "/cards/sunforged-armor.webp",
+        name: "SUNFORGED ARMOR",
+        title: "Radiant Shield",
+        characteristics: ["artifact", "armor"],
+        text: [
+            "**Solar Resilience** - Exert this item to give a character +2 willpower until the end of turn.",
+        ],
+        type: "item",
+        flavour:
+            "Forged in the heart of a dying star, it glows with the warmth of a thousand suns.",
+        inkwell: true,
+        color: "amber",
+        cost: 3,
+        strength: 0,
+        willpower: 0,
+        lore: 0,
+        actionChecks: generateActionChecks({}),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                gameState.inputStage = {
+                    type: "ability",
+                    options: gameState.players[gameState.currentPlayer].field,
+                    prompt: "Choose a character to boost",
+                    callback: choice => {
+                        useGameStore.setState(state => {
+                            if (
+                                typeof choice === "string" ||
+                                Array.isArray(choice)
+                            )
+                                return state;
+                            const player = state.players[state.currentPlayer];
+                            const target = player.field.find(
+                                card => card.id === choice.id
+                            );
+                            if (!target) return state;
+
+                            target.willpower += 2;
+
+                            state.inputStage = null;
+                            return { ...state };
+                        });
+                    },
+                };
+                return gameState;
+            },
+        }),
+        triggers: generateTriggers({}),
+        illustrator: "GPT4o",
+        language: "EN",
+        number: 11,
+        set: "JSC",
+        rarity: "rare",
+        modifiers: [],
+    },
+    {
+        implemented: true,
+        url: "/cards/cindershadow-sorcerer.webp",
+        name: "CINDERSHADOW SORCERER",
+        title: "Wielder of Flames",
+        characteristics: ["storyborn", "sorcerer"],
+        text: [
+            "**Flame Conjure** - When this character enters play, deal 2 damage to all enemy characters.",
+        ],
+        type: "character",
+        flavour:
+            "From the darkness of the ash, the Cindershadow rises to incinerate all that opposes it.",
+        inkwell: true,
+        color: "ruby",
+        cost: 5,
+        strength: 4,
+        willpower: 2,
+        lore: 2,
+        actionChecks: generateActionChecks({}),
+        actions: generateActions({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[
+                        (gameState.currentPlayer + 1) % 2
+                    ].field.forEach(card => {
+                        card.strength -= 2;
+                        if (card.strength <= 0) {
+                            gameState.players = moveToDiscard(gameState, card);
+                        }
+                    });
+                }
+                return { ...gameState };
+            },
+        }),
+        illustrator: "GPT4o",
+        language: "EN",
+        number: 12,
+        set: "JSC",
+        rarity: "legendary",
+        modifiers: [],
+    },
+    {
+        implemented: true,
+        url: "/cards/mystic-elder.webp",
+        name: "MYSTIC ELDER",
+        title: "Sage of the Ages",
+        characteristics: ["storyborn", "mage"],
+        text: [
+            "**Arcane Insight** - When this character is played, look at the top 5 cards of your deck and rearrange them.",
+        ],
+        type: "character",
+        flavour:
+            "Time bends and knowledge flows from the mind of the Mystic Elder.",
+        inkwell: true,
+        color: "amethyst",
+        cost: 4,
+        strength: 2,
+        willpower: 4,
+        lore: 3,
+        actionChecks: generateActionChecks({}),
+        actions: generateActions({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    const top5Cards = gameState.players[
+                        gameState.currentPlayer
+                    ].deck.slice(0, 5);
+                    gameState.inputStage = {
+                        type: "play",
+                        options: top5Cards,
+                        maxSelections: 5,
+                        prompt: "Rearrange the top 5 cards of your deck",
+                        callback: newOrder => {
+                            if (
+                                typeof newOrder === "string" ||
+                                !Array.isArray(newOrder) ||
+                                newOrder.length !== 5
+                            )
+                                return gameState;
+                            useGameStore.setState(state => {
+                                state.players[state.currentPlayer].deck = [
+                                    ...newOrder,
+                                    ...state.players[
+                                        state.currentPlayer
+                                    ].deck.slice(5),
+                                ];
+                                state.inputStage = null;
+                                return { ...state };
+                            });
+                        },
+                    };
+                }
+                return { ...gameState };
+            },
+        }),
+        illustrator: "GPT4o",
+        language: "EN",
+        number: 13,
+        set: "JSC",
+        rarity: "uncommon",
+        modifiers: [],
+    },
+    {
+        implemented: true,
+        url: "/cards/vinebound-titan.webp",
+        name: "VINEBOUND TITAN",
+        title: "Earthbound Juggernaut",
+        characteristics: ["storyborn", "giant"],
+        text: [
+            "**Entangling Vines** - When this character challenges, reduce the target's willpower by 2.",
+        ],
+        type: "character",
+        flavour:
+            "The Vinebound Titan crushes its foes with nature's unyielding force.",
+        inkwell: false,
+        color: "emerald",
+        cost: 7,
+        strength: 6,
+        willpower: 6,
+        lore: 1,
+        actionChecks: generateActionChecks({}),
+        actions: generateActions({}),
+        triggers: generateTriggers({}),
+        illustrator: "GPT4o",
+        language: "EN",
+        number: 14,
+        set: "JSC",
+        rarity: "rare",
+        modifiers: [
+            {
+                value: 3,
+                duration: "permanent",
+                stat: "strength",
+                type: "challenge",
+                turnApplied: 0,
+                hasTriggered: false,
+            },
+        ],
     },
 ];
 

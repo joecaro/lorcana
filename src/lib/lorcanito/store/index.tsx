@@ -18,7 +18,7 @@ const useGameStore = create<GameState>()(
             players: [player1, player2],
             currentPlayer: 0,
             lastAction: null,
-            round: 0,
+            turn: 0,
             endOfTurnCallbacks: [],
             debugLogs: [],
             phase: "start_phase",

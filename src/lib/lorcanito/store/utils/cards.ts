@@ -1,4 +1,4 @@
-import { applyModifiers, findPontentialTargets } from ".";
+import { applyModifiers, checkTriggers, findPontentialTargets } from ".";
 import useGameStore from "..";
 import {
     Action,
@@ -32,8 +32,7 @@ export function generateActionChecks(
             if (
                 !thisCard.lore ||
                 thisCard.exerted ||
-                (thisCard.roundPlayed !== null &&
-                    thisCard.roundPlayed >= _.round)
+                (thisCard.turnPlayed !== null && thisCard.turnPlayed >= _.turn)
             ) {
                 return null;
             }
@@ -60,8 +59,7 @@ export function generateActionChecks(
         },
         ability: (_: GameState, thisCard: Card) => {
             const inkDrying =
-                thisCard.roundPlayed !== null &&
-                thisCard.roundPlayed >= _.round;
+                thisCard.turnPlayed !== null && thisCard.turnPlayed >= _.turn;
             const isAction = thisCard.type === "action";
             const player = _.players[_.currentPlayer];
 
@@ -133,7 +131,7 @@ export function generateActions(
                 if (player.id === gameState.attacker) {
                     player.field.push({
                         ...card,
-                        roundPlayed: gameState.round,
+                        turnPlayed: gameState.turn,
                         zone: "field",
                     });
                     player.hand = gameState.players[
@@ -183,60 +181,55 @@ export function generateActions(
                             return state;
                         }
 
+                        state = checkTriggers(state, "challenge", targetCard);
+
                         // Apply modifiers to the strength and willpower stats before calculating damage
-                        const modifiedStrength = applyModifiers(
+                        thisCard.strengthModifier = applyModifiers(
                             thisCard,
                             "challenge",
-                            thisCard.strength,
+                            thisCard.strengthModifier,
                             "strength"
                         );
-                        const modifiedWillpower = applyModifiers(
-                            targetCard,
+                        thisCard.willpowerModifier = applyModifiers(
+                            thisCard,
                             "challenge",
-                            targetCard.willpower,
+                            thisCard.willpowerModifier,
                             "willpower"
                         );
 
-                        const modifiedTargetWillpower = applyModifiers(
+                        targetCard.willpowerModifier = applyModifiers(
                             targetCard,
                             "challenged",
-                            targetCard.willpower,
+                            targetCard.willpowerModifier,
                             "willpower"
                         );
-                        const modifiedTargetStrength = applyModifiers(
+                        targetCard.strengthModifier = applyModifiers(
                             targetCard,
                             "challenged",
-                            targetCard.strength,
+                            targetCard.strengthModifier,
                             "strength"
                         );
-
-                        // Calculate the damage dealt and taken
-                        const damageDealt =
-                            modifiedStrength - modifiedTargetWillpower;
-                        const damageTaken =
-                            modifiedTargetStrength - modifiedWillpower;
-
-                        // Apply damage to the target and attacker
-                        targetCard.strength -= damageDealt;
-                        thisCard.strength -= damageTaken;
 
                         // Log the combat result
                         state.debugLogs.push({
                             type: "Combat",
                             attacker: thisCard,
                             defender: targetCard,
-                            damageDealt,
-                            damageTaken,
                         });
 
-                        // Mark the attacker as exerted
                         thisCard.exerted = true;
 
-                        // Remove defeated cards (optional: handle graveyard logic)
-                        if (targetCard.strength <= 0) {
+                        // Remove defeated cards
+                        if (
+                            targetCard.strength + targetCard.strengthModifier <=
+                            0
+                        ) {
                             state.players = moveToDiscard(state, targetCard);
                         }
-                        if (thisCard.strength <= 0) {
+                        if (
+                            thisCard.strength + thisCard.strengthModifier <=
+                            0
+                        ) {
                             state.players = moveToDiscard(state, thisCard);
                         }
 
@@ -340,10 +333,13 @@ export function create(card: BaseCard, ownerId: string): Card {
         owner: ownerId,
         exerted: false,
         zone: "deck",
-        roundPlayed: null,
+        turnPlayed: null,
         strengthModifier: 0,
         willpowerModifier: 0,
-        isFoil: Math.random() < 0.4,
+        isFoil:
+            card.rarity === "legendary" || card.rarity === "super rare"
+                ? Math.random() < 0.4
+                : Math.random() < 0.1,
     };
 }
 

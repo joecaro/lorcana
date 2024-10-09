@@ -1,17 +1,17 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { mix, motion } from "framer-motion";
-// import { useDraggable } from "@dnd-kit/core";
+import { useDraggable } from "@dnd-kit/core";
 import { Card } from "@/lib/lorcanito/types/game";
 import { MagicCard } from "../card-maker";
 import { cn } from "@/lib/utils";
 import useGameStore from "@/lib/lorcanito/store";
 
-// const MOVE_THRESHOLD = 30; // Pixel threshold for movement detection
+const MOVE_THRESHOLD = 30; // Pixel threshold for movement detection
 
-// const movedPastThreshold = (transform: { x: number; y: number }): boolean =>
-//     Math.abs(transform.x) > MOVE_THRESHOLD ||
-//     Math.abs(transform.y) > MOVE_THRESHOLD;
+const movedPastThreshold = (transform: { x: number; y: number }): boolean =>
+    Math.abs(transform.x) > MOVE_THRESHOLD ||
+    Math.abs(transform.y) > MOVE_THRESHOLD;
 
 const CardUI: React.FC<{
     card: Card;
@@ -30,8 +30,10 @@ const CardUI: React.FC<{
             type={card.type}
             descriptions={card.text}
             flavorText={[card.flavour || ""]}
-            willpower={card.willpower.toString()}
-            strength={card.strength.toString()}
+            willpower={card.willpower}
+            willpowerModifier={card.willpowerModifier}
+            strength={card.strength}
+            strengthModifier={card.strengthModifier}
             footerLeftText={[
                 card.illustrator,
                 `${card.number} / ${card.language} / ${card.set}`,
@@ -49,8 +51,8 @@ const CardComp: React.FC<{
     square?: boolean;
     className?: string;
 }> = ({ card, hideCardDetails, square, className }) => {
-    // const { attributes, listeners, setNodeRef, transform, isDragging } =
-    // useDraggable({ id: card.id });
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+        useDraggable({ id: card.id });
 
     const inputStage = useGameStore(state => state.inputStage);
 
@@ -60,26 +62,34 @@ const CardComp: React.FC<{
             c => typeof c === "object" && c.id === card.id
         );
 
-        console.log(inputStage);
-        
-
-    // const startPos = useRef<{ x: number; y: number } | null>(null);
+    const startPos = useRef<{ x: number; y: number } | null>(null);
     const cardRef = useRef<HTMLDivElement | null>(null);
     const [rotation, setRotation] = useState({ rotateX: 0, rotateY: 0 });
     const [shinePosition, setShinePosition] = useState({ x: 50, y: 50 });
 
     const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault(); // Prevent browser default behavior
-        // const startX = "touches" in e ? e.touches[0].clientX : e.clientX;
-        // const startY = "touches" in e ? e.touches[0].clientY : e.clientY;
-        // startPos.current = { x: startX, y: startY };
+        const startX = "touches" in e ? e.touches[0].clientX : e.clientX;
+        const startY = "touches" in e ? e.touches[0].clientY : e.clientY;
+        startPos.current = { x: startX, y: startY };
     };
 
     const handleMouseUp = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
-        // startPos.current = null;
+        const endX = "touches" in e ? e.touches[0].clientX : e.clientX;
+        const endY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-        if (isOption(card)) inputStage?.callback(card);
+        // Check if the mouse movement was within the threshold to be considered a click
+        if (startPos.current) {
+            const distanceMoved = Math.sqrt(
+                Math.pow(endX - startPos.current.x, 2) +
+                    Math.pow(endY - startPos.current.y, 2)
+            );
+            if (distanceMoved < MOVE_THRESHOLD && isOption(card)) {
+                inputStage?.callback(card); // Handle click action
+            }
+        }
+        startPos.current = null;
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -111,17 +121,18 @@ const CardComp: React.FC<{
         setShinePosition({ x: 50, y: 50 });
     };
 
-    // const unSnap = transform && movedPastThreshold(transform);
-    // const motionStyle = transform
-    //     ? {
-    //           x: unSnap ? transform.x : 0,
-    //           y: unSnap ? transform.y : 0,
-    //           zIndex: isDragging ? 9999 : "auto",
-    //           boxShadow: isDragging
-    //               ? "0px 0px 15px rgba(0, 0, 0, 0.3)"
-    //               : "0px 0px 8px rgba(0, 0, 0, 0.1)",
-    //       }
-    //     : {};
+    const unSnap = transform && movedPastThreshold(transform);
+    const motionStyle = transform
+        ? {
+              x: unSnap ? transform.x : 0,
+              y: unSnap ? transform.y : 0,
+              rotation: unSnap ? mix(transform.x / 100, 0, 360) : "initial",
+              zIndex: isDragging ? 9999 : "auto",
+              boxShadow: isDragging
+                  ? "0px 0px 15px rgba(0, 0, 0, 0.3)"
+                  : "0px 0px 8px rgba(0, 0, 0, 0.1)",
+          }
+        : {};
 
     const cardStyle = {
         "--pointer-x": `${shinePosition.x}%`,
@@ -135,7 +146,7 @@ const CardComp: React.FC<{
         border: "1px solid black",
         borderBottom: square ? "5px solid black" : "1px solid black",
         boxShadow: `0 0 0 1px ${isOption(card) ? "green" : "#fff"}`,
-        // ...motionStyle,
+        ...motionStyle,
     };
 
     // Shine layer styles (using the VMAX effect)
@@ -196,11 +207,11 @@ const CardComp: React.FC<{
         <motion.div
             id={"hand" + card.id}
             ref={el => {
-                // setNodeRef(el);
+                setNodeRef(el);
                 cardRef.current = el;
             }}
-            // {...listeners}
-            // {...attributes}
+            {...listeners}
+            {...attributes}
             layout
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

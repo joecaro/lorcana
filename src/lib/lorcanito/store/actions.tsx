@@ -33,7 +33,10 @@ function choosePlayCard() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (typeof targetCard !== "object") {
+                            if (
+                                typeof targetCard !== "object" ||
+                                Array.isArray(targetCard)
+                            ) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -90,7 +93,10 @@ function chooseQuest() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (typeof targetCard !== "object") {
+                            if (
+                                typeof targetCard !== "object" ||
+                                Array.isArray(targetCard)
+                            ) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -130,7 +136,10 @@ function chooseChallenge() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (typeof targetCard !== "object") {
+                            if (
+                                typeof targetCard !== "object" ||
+                                Array.isArray(targetCard)
+                            ) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -178,7 +187,10 @@ function chooseAbility() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (typeof targetCard !== "object") {
+                            if (
+                                typeof targetCard !== "object" ||
+                                Array.isArray(targetCard)
+                            ) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -218,7 +230,10 @@ function chooseInkCard() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (typeof targetCard !== "object") {
+                            if (
+                                typeof targetCard !== "object" ||
+                                Array.isArray(targetCard)
+                            ) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -262,7 +277,7 @@ function choosePass() {
             gameState.attacker = gameState.players[gameState.currentPlayer].id;
             gameState.defender =
                 gameState.players[gameState.currentPlayer === 0 ? 1 : 0].id;
-            gameState.round += 1;
+            gameState.turn += 1;
             gameState.players = gameState.players.map(p => {
                 if (p.id === gameState.attacker) {
                     p.availableInk = p.inkwell.length;
