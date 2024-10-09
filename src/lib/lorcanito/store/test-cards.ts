@@ -38,27 +38,32 @@ const cards: BaseCard[] = [
                     options: healabeCards,
                     prompt: "Choose a card to heal",
                     callback: choice => {
-                        useGameStore.setState(state => {
-                            if (typeof choice === "string") return state;
-                            const player = state.players[state.currentPlayer];
-                            const target = player[choice.zone].find(
-                                card => card.id === choice.id
-                            );
-                            if (!target) return state;
+                        useGameStore.setState(
+                            state => {
+                                if (typeof choice === "string") return state;
+                                const player =
+                                    state.players[state.currentPlayer];
+                                const target = player[choice.zone].find(
+                                    card => card.id === choice.id
+                                );
+                                if (!target) return state;
 
-                            player[choice.zone] = player[choice.zone].map(
-                                card =>
-                                    card.id === choice.id
-                                        ? {
-                                              ...card,
-                                              strength: card.strength + 1,
-                                          }
-                                        : card
-                            );
+                                player[choice.zone] = player[choice.zone].map(
+                                    card =>
+                                        card.id === choice.id
+                                            ? {
+                                                  ...card,
+                                                  strength: card.strength + 1,
+                                              }
+                                            : card
+                                );
 
-                            state.inputStage = null;
-                            return { ...state };
-                        });
+                                state.inputStage = null;
+                                return { ...state };
+                            },
+                            false,
+                            { type: "Rainey Day" }
+                        );
                     },
                 };
                 return gameState;
@@ -158,57 +163,70 @@ const cards: BaseCard[] = [
                     maxSelections: 1,
                     prompt: "Choose a character to sacrifice",
                     callback: choice => {
-                        useGameStore.setState(state => {
-                            if (typeof choice === "string") return state;
-                            const player = state.players[state.currentPlayer];
-                            const target = player[choice.zone].find(
-                                card => card.id === choice.id
-                            );
-                            if (!target) return state;
+                        useGameStore.setState(
+                            state => {
+                                if (typeof choice === "string") return state;
+                                const player =
+                                    state.players[state.currentPlayer];
+                                const target = player[choice.zone].find(
+                                    card => card.id === choice.id
+                                );
+                                if (!target) return state;
 
-                            player[choice.zone] = player[choice.zone].map(
-                                card =>
-                                    card.id === choice.id
-                                        ? {
-                                              ...card,
-                                              strength: card.strength - 2,
-                                          }
-                                        : card
-                            );
+                                player[choice.zone] = player[choice.zone].map(
+                                    card =>
+                                        card.id === choice.id
+                                            ? {
+                                                  ...card,
+                                                  strength: card.strength - 2,
+                                              }
+                                            : card
+                                );
 
-                            state.inputStage = {
-                                type: "play",
-                                options:
-                                    state.players[(state.currentPlayer + 1) % 2]
-                                        .field,
-                                maxSelections: 1,
-                                prompt: "Choose a character to damage",
-                                callback: choice => {
-                                    useGameStore.setState(state => {
-                                        if (typeof choice === "string")
-                                            return state;
-                                        const target = state.players[
+                                state.inputStage = {
+                                    type: "play",
+                                    options:
+                                        state.players[
                                             (state.currentPlayer + 1) % 2
-                                        ].field.find(
-                                            card => card.id === choice.id
+                                        ].field,
+                                    maxSelections: 1,
+                                    prompt: "Choose a character to damage",
+                                    callback: choice => {
+                                        useGameStore.setState(
+                                            state => {
+                                                if (typeof choice === "string")
+                                                    return state;
+                                                const target = state.players[
+                                                    (state.currentPlayer + 1) %
+                                                        2
+                                                ].field.find(
+                                                    card =>
+                                                        card.id === choice.id
+                                                );
+                                                if (!target) return state;
+
+                                                target.strength -= 4;
+
+                                                if (target.strength <= 0) {
+                                                    state.players =
+                                                        moveToDiscard(
+                                                            state,
+                                                            target
+                                                        );
+                                                }
+
+                                                return { ...state };
+                                            },
+                                            false,
+                                            { type: "Life Drain Attack" }
                                         );
-                                        if (!target) return state;
-
-                                        target.strength -= 4;
-
-                                        if (target.strength <= 0) {
-                                            state.players = moveToDiscard(
-                                                state,
-                                                target
-                                            );
-                                        }
-
-                                        return { ...state };
-                                    });
-                                },
-                            };
-                            return { ...state };
-                        });
+                                    },
+                                };
+                                return { ...state };
+                            },
+                            false,
+                            { type: "Life Drain Sacrifice" }
+                        );
                     },
                 };
 
@@ -224,6 +242,7 @@ const cards: BaseCard[] = [
         modifiers: [],
     },
     {
+        // TODO: add field modifiers
         implemented: true,
         url: "/cards/celestial-beacon.webp",
         name: "CELESTIAL BEACON",
@@ -243,7 +262,28 @@ const cards: BaseCard[] = [
         lore: 0, // Items generally do not contribute to lore directly
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
-        triggers: generateTriggers({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[gameState.currentPlayer].field.forEach(
+                        card => {
+                            card.lore += 1;
+                        }
+                    );
+                }
+                return { ...gameState };
+            },
+            discard: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[gameState.currentPlayer].field.forEach(
+                        card => {
+                            card.lore -= 1;
+                        }
+                    );
+                }
+                return { ...gameState };
+            },
+        }),
         illustrator: "GPT4o",
         language: "EN",
         number: 8,
@@ -286,22 +326,26 @@ const cards: BaseCard[] = [
                         showDialogue: true,
                         prompt: "Choose a card to move to your hand",
                         callback: choice => {
-                            useGameStore.setState(state => {
-                                if (typeof choice === "string")
-                                    return gameState;
-                                state.players[state.currentPlayer].hand.push(
-                                    choice
-                                );
-                                state.players[state.currentPlayer].deck =
+                            useGameStore.setState(
+                                state => {
+                                    if (typeof choice === "string")
+                                        return gameState;
                                     state.players[
                                         state.currentPlayer
-                                    ].deck.filter(
-                                        card => card.id !== choice.id
-                                    );
-                                state.inputStage = null;
+                                    ].hand.push(choice);
+                                    state.players[state.currentPlayer].deck =
+                                        state.players[
+                                            state.currentPlayer
+                                        ].deck.filter(
+                                            card => card.id !== choice.id
+                                        );
+                                    state.inputStage = null;
 
-                                return { ...state };
-                            });
+                                    return { ...state };
+                                },
+                                false,
+                                { type: "Warning Call" }
+                            );
                         },
                     };
                 }
@@ -341,7 +385,14 @@ const cards: BaseCard[] = [
         number: 1,
         set: "TFC",
         rarity: "uncommon",
-        modifiers: [],
+        modifiers: [
+            {
+                value: 1,
+                duration: "until_end_of_turn",
+                stat: "willpower",
+                type: "challenge",
+            },
+        ],
     },
     {
         implemented: true,
@@ -361,8 +412,50 @@ const cards: BaseCard[] = [
         strength: 0, // Item cards typically do not have inherent strength
         willpower: 0, // Item cards typically do not have inherent willpower
         lore: 0, // Items generally do not contribute to lore directly
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
+        actionChecks: generateActionChecks({
+            ability: (gameState, thisCard) => {
+                // TODO: IMPLEMENT TEMP BUFFS
+                return null;
+            },
+        }),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                gameState.inputStage = {
+                    type: "ability",
+                    options: gameState.players[gameState.currentPlayer].field,
+                    prompt: "Choose a character to empower",
+                    callback: choice => {
+                        useGameStore.setState(
+                            state => {
+                                if (typeof choice === "string") return state;
+                                const player =
+                                    state.players[state.currentPlayer];
+                                const target = player[choice.zone].find(
+                                    card => card.id === choice.id
+                                );
+                                if (!target) return state;
+
+                                player[choice.zone] = player[choice.zone].map(
+                                    card =>
+                                        card.id === choice.id
+                                            ? {
+                                                  ...card,
+                                                  strength: card.strength + 3,
+                                              }
+                                            : card
+                                );
+
+                                state.inputStage = null;
+                                return { ...state };
+                            },
+                            false,
+                            { type: "EMPOWER" }
+                        );
+                    },
+                };
+                return gameState;
+            },
+        }),
         triggers: generateTriggers({}),
         illustrator: "GPT4o",
         language: "EN",
@@ -391,7 +484,29 @@ const cards: BaseCard[] = [
         lore: 3,
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
-        triggers: generateTriggers({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[gameState.currentPlayer].field.forEach(
+                        card => {
+                            card.willpower += 1;
+                        }
+                    );
+                }
+                return { ...gameState };
+            },
+
+            discard: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.players[gameState.currentPlayer].field.forEach(
+                        card => {
+                            card.willpower -= 1;
+                        }
+                    );
+                }
+                return { ...gameState };
+            },
+        }),
         illustrator: "GPT4o",
         language: "EN",
         number: 5,
@@ -419,7 +534,14 @@ const cards: BaseCard[] = [
         lore: 2,
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
-        triggers: generateTriggers({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    return drawCard(gameState, 1, gameState.attacker);
+                }
+                return gameState;
+            },
+        }),
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -447,7 +569,46 @@ const cards: BaseCard[] = [
         lore: 2,
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
-        triggers: generateTriggers({}),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    useGameStore.setState(
+                        state => {
+                            state.inputStage = {
+                                type: "ability",
+                                options:
+                                    state.players[(state.currentPlayer + 1) % 2]
+                                        .field,
+                                prompt: "Choose a character to damage",
+                                callback: choice => {
+                                    if (typeof choice === "string")
+                                        return state;
+                                    const target = state.players[
+                                        (state.currentPlayer + 1) % 2
+                                    ].field.find(card => card.id === choice.id);
+                                    if (!target) return state;
+                                    target.strength -= 1;
+                                    if (target.strength <= 0) {
+                                        state.players = moveToDiscard(
+                                            state,
+                                            target
+                                        );
+                                    }
+                                    state.inputStage = null;
+                                    return { ...state };
+                                },
+                            };
+
+                            return { ...state };
+                        },
+                        false,
+                        { type: "FIERY PLUME" }
+                    );
+                }
+
+                return { ...gameState };
+            },
+        }),
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -476,8 +637,81 @@ const cards: BaseCard[] = [
         willpower: 4,
         lore: 2,
         actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                const options = gameState.players[
+                    (gameState.currentPlayer + 1) % 2
+                ].field.filter(card => card.type === "item");
+                if (options.length === 0) return gameState;
+                gameState.inputStage = {
+                    type: "ability",
+                    options: options,
+                    prompt: "Choose an item to steal",
+                    callback: choice => {
+                        useGameStore.setState(
+                            state => {
+                                if (typeof choice === "string") return state;
+                                const target = state.players[
+                                    state.currentPlayer === 0 ? 1 : 0
+                                ].field.find(card => card.id === choice.id);
+                                if (!target) return state;
+
+                                state.players = state.players.map(player => {
+                                    if (player.id === state.attacker) {
+                                        return {
+                                            ...player,
+                                            field: player.field.concat({
+                                                ...target,
+                                                owner: player.id,
+                                            }),
+                                        };
+                                    } else {
+                                        return {
+                                            ...player,
+                                            field: player.field.filter(
+                                                card => card.id !== choice.id
+                                            ),
+                                        };
+                                    }
+                                });
+
+                                return { ...state };
+                            },
+                            false,
+                            { type: "TEEF" }
+                        );
+                    },
+                };
+
+                return gameState;
+            },
+        }),
+        triggers: generateTriggers({
+            play: (gameState, thisCard, thatCard) => {
+                if (thatCard?.id === thisCard.id) {
+                    gameState.inputStage = {
+                        type: "ability",
+                        options: gameState.players[
+                            gameState.currentPlayer
+                        ].field.filter(card => card.id !== thisCard.id),
+                        prompt: "Choose a character to heal",
+                        callback: choice => {
+                            useGameStore.setState(state => {
+                                if (typeof choice === "string") return state;
+                                const target = state.players[
+                                    state.currentPlayer
+                                ].field.find(card => card.id === choice.id);
+                                if (!target) return state;
+                                target.strength += 1;
+                                state.inputStage = null;
+                                return { ...state };
+                            });
+                        },
+                    };
+                }
+                return { ...gameState };
+            },
+        }),
         illustrator: "GPT4o",
         language: "EN",
         number: 2,
