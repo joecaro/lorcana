@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Deck-building Game
+
+## Overview
+
+This is a deck-building game inspired by the popular game Lorcana. This project aims to explore the logic behind deck-building games while incorporating fun UI challenges such as 3D card animations and holographic effects.
+
+## Key Features
+
+Deck-building Logic: Implemented core mechanics for deck-building, including shuffling, drawing, and playing cards.
+3D Card Animations: Added interactive 3D animations for cards to enhance the user experience.
+Holographic Effects: Incorporated holo effects to make the cards visually appealing and engaging.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js
+- npm or yarn
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Clone the repository
+- Navigate to the project directory
+- Install dependencies
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Running the Project
 
-## Learn More
+To start the development server, run: `npm run dev`
 
-To learn more about Next.js, take a look at the following resources:
+This will start the application on <http://localhost:3000>.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Details
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Logic Implementation
 
-## Deploy on Vercel
+The core logic for the deck-building game is implemented in the lib directory. For example, the initial state of a player is generated using the generatePlayerState function in src/lib/lorcanito/cards.ts.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### UI Components
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The UI components, including the 3D card animations and holo effects, are located in the components directory.
+
+### Configuration
+
+- Tailwind CSS: Configured in tailwind.config.ts.
+- TypeScript: Configured in tsconfig.json.
+- Next.js: Configured in next.config.mjs.
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
+
+##Acknowledgements
+Inspired by the game Lorcana.
+Thanks to the open-source community for various libraries and tools used in this project.
+
+- [react-mtg-card](https://github.com/germanyn/reactjs-mtg-card) for early designs and inspiration for the card maker
+- [shadcn ui](https://github.com/shadcn-ui/ui)
+
+Enjoy building and playing Lorcanito!
