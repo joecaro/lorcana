@@ -1,5 +1,6 @@
 import useGameStore from ".";
-import { Action, Card, GameState, Player, Zone } from "../types/game";
+import { executeBotAction } from "../bot";
+import { Action, Card, GameState, Player } from "../types/game";
 import { checkTriggers, drawCard } from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,6 +72,9 @@ function chooseDrawCard(numCards: number, playerId: string) {
     useGameStore.setState(
         gameState => {
             const newGameState = drawCard(gameState, numCards, playerId);
+
+            gameState.turnFlags.draw = true;
+
             return { ...newGameState };
         },
         false,
@@ -172,13 +176,8 @@ function chooseAbility() {
                 card => card.actionChecks.ability(gameState, card) !== null
             );
             const actionCards = player.hand.filter(card => {
-                console.log(card.name);
-                console.log(card.actionChecks.ability(gameState, card));
                 return card.actionChecks.ability(gameState, card) !== null;
             });
-
-            console.log(abilityCards);
-            console.log(actionCards);
 
             gameState.inputStage = {
                 prompt: "Select a card to exert:",
@@ -251,6 +250,8 @@ function chooseInkCard() {
                 },
             };
 
+            gameState.turnFlags.ink = true;
+
             return { ...gameState };
         },
         false,
@@ -285,10 +286,27 @@ function choosePass() {
                         card.exerted = false;
                         return card;
                     });
+
+                    gameState = drawCard(gameState, 1, p.id);
                 }
                 return p;
             });
             gameState.phase = "main_phase";
+
+            if (!gameState.players[gameState.currentPlayer].isHuman) {
+                setTimeout(() => {
+                    executeBotAction();
+                }, 1000);
+            }
+
+            gameState.turnFlags = {
+                ink: false,
+                play: false,
+                ability: false,
+                challenge: false,
+                draw: false,
+            };
+
             return { ...gameState };
         },
         false,
@@ -340,4 +358,22 @@ export function shuffle<T>(array: Array<T>): Array<T> {
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+}
+
+export function damageCard(
+    state: GameState,
+    card: Card,
+    damage: number
+): GameState {
+    const target = state.players[(state.currentPlayer + 1) % 2].field.find(
+        c => c.id === card.id
+    );
+    if (!target) return state;
+    target.strength -= damage;
+    if (target.strength <= 0) {
+        state.players = moveToDiscard(state, target);
+    }
+    state.inputStage = null;
+
+    return { ...state };
 }

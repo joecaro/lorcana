@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 import cards from "./test-cards";
 import { GameState, Player } from "../types/game";
 import { shuffle } from "./actions";
 import { createCards } from "./utils/cards";
 
 const player1 = generatePlayerState("player1");
-const player2 = generatePlayerState("player2");
+const player2 = generatePlayerState("player2", true);
 
 const useGameStore = create<GameState>()(
     // persist(
@@ -23,6 +23,12 @@ const useGameStore = create<GameState>()(
             debugLogs: [],
             phase: "start_phase",
             inputStage: null,
+            turnFlags: {
+                ink: false,
+                play: false,
+                ability: false,
+                challenge: false,
+            },
         }),
         {
             anonymousActionType: "GAME STORE ACTION",
@@ -38,21 +44,29 @@ const useGameStore = create<GameState>()(
 export default useGameStore;
 
 // Helper function to generate a player's initial state
-function generatePlayerState(playerId: string): Player {
+function generatePlayerState(playerId: string, bot: boolean = false): Player {
     return {
         id: playerId,
-        hand: [],
-        deck: shuffle(createCards(cards, playerId)),
+        hand: [], // Initially empty hand
+        deck: [], // Initially empty deck
         inkwell: [],
         discard: [],
         field: [],
         availableInk: 0,
         lore: 0,
-        isHuman: true,
+        isHuman: !bot,
         name: playerId,
         numCardsPerTurn: 1,
         stateNumInked: 0,
         statePlayedThisTurn: [],
         stateQuestedThisTurn: [],
+    };
+}
+
+export function initializePlayerDeck(playerId: string) {
+    const deck = shuffle(createCards(cards, playerId));
+    return {
+        hand: deck.slice(0, 5).map(c => ({ ...c, zone: 'hand' })),
+        deck: deck.slice(5),
     };
 }

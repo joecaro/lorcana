@@ -10,6 +10,7 @@ export interface CardProps {
     name: string;
     title: string;
     type: string;
+    characteristics: string[];
     cardCost: string;
     willpower: number;
     willpowerModifier: number;
@@ -239,7 +240,12 @@ const MagicCard: React.FC<CardProps> = props => {
                         />
                     </div>
                     <div className={cn(lightText, " text-[4px]")}>
-                        {props.type}
+                        {props.characteristics.map((characteristic, index) => (
+                            <span key={characteristic}>
+                                {index > 0 && " • "}
+                                {characteristic}
+                            </span>
+                        ))}
                     </div>
                 </div>
 
@@ -280,7 +286,7 @@ const MagicCard: React.FC<CardProps> = props => {
                             />
                         ))}
                     </div>
-                    <div className='relative text-neutral-900 flex flex-col gap-[2px] justify-center items-center text-[4px]'>
+                    <div className='relative text-neutral-900 bg-yellow-100 bg-opacity-30 flex flex-col gap-[2px] justify-center items-center text-[4px]'>
                         <Triangle
                             className={cn(
                                 caretClass,

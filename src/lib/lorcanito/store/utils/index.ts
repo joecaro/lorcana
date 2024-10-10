@@ -20,13 +20,12 @@ export function drawCard(
     }
     const deck = player.deck;
     const hand = player.hand;
-    const drawnCards = deck.slice(-numCards);
-    player.hand = [
-        ...hand,
-        ...drawnCards.map(c => ({ ...c, zone: "hand" as Zone })),
-    ];
+    const drawnCards = deck
+        .slice(-numCards)
+        .map(c => ({ ...c, zone: "hand" as Zone }));
+    player.hand = [...hand, ...drawnCards];
     player.deck = deck.slice(0, -numCards);
-    console.log("Drawn cards:", drawnCards);
+    console.info("Drawn cards:", drawnCards);
 
     gameState.players = gameState.players.map(p =>
         p.id === playerId ? player : p
@@ -34,10 +33,25 @@ export function drawCard(
     return { ...gameState };
 }
 
-export function findPontentialTargets(gameState: GameState): Card[] {
+export function staticAbilitiesCheck(targetCard: Card, thisCard: Card) {
+    let canTarget = false;
+    if (targetCard.staticAbilities.evasive.active) {
+        canTarget = thisCard.staticAbilities.evasive.active;
+    }
+
+    return canTarget;
+}
+
+export function findPotentialTargets(
+    gameState: GameState,
+    thisCard: Card
+): Card[] {
     const opponent = gameState.players[gameState.currentPlayer === 0 ? 1 : 0];
     const potentialTargets = opponent.field.filter(
-        card => card.strength > 0 && card.exerted
+        card =>
+            card.strength > 0 &&
+            card.exerted &&
+            staticAbilitiesCheck(card, thisCard)
     );
 
     return potentialTargets;
@@ -45,7 +59,9 @@ export function findPontentialTargets(gameState: GameState): Card[] {
 
 export function findHealableCards(gameState: GameState): Card[] {
     const player = gameState.players[gameState.currentPlayer];
-    const healableCards = player.field.filter(card => card.willpower > 0);
+    const healableCards = player.field.filter(
+        card => card.willpower > 0 && card.type !== "character"
+    );
 
     return healableCards;
 }
@@ -112,7 +128,9 @@ export const computeAvailableActions = (state: GameState) => {
         newAvailableActions.push({ type: "cancel", cards: [] });
     }
 
-    return newAvailableActions;
+    return newAvailableActions.filter(
+        action => player.isHuman || !state.turnFlags[action.type]
+    );
 };
 
 export function checkTriggers(
@@ -121,15 +139,17 @@ export function checkTriggers(
     eventCard: Card
 ) {
     gameState.players.forEach(player => {
+        console.groupCollapsed("Triggers");
         player.field.forEach(card => {
             const trigger = card.triggers[eventType];
             if (trigger) {
                 gameState = trigger(gameState, card, eventCard);
-                console.log(
+                console.info(
                     `Trigger executed for ${card.name} on event: ${eventType}`
                 );
             }
         });
+        console.groupEnd();
     });
 
     return gameState;

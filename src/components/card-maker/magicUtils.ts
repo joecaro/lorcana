@@ -47,12 +47,14 @@ export function manaCostParser(manaCost: string) {
 
 export const formatter = (str: string) =>
     str
-        .replaceAll(/\*\*(.*?)\*\*/g, '<span class="font-extrabold">$1</span>')
-        .replaceAll(manaCostMatcher, match => {
-            const cost = match[1];
-            return /*html*/ `
-		<span style="font-size: 14px;">
-			<i class="${`${manaIcons[cost] || `ms ms-${cost} ms-cost`}`}"></i>
-		</span>
-	`;
-        });
+        // Bold text (**text**)
+        .replace(/\*\*(.*?)\*\*/g, '<span class="font-extrabold">$1</span>')
+        // Italic text (*text*)
+        .replace(/\*(.*?)\*/g, '<span class="italic">$1</span>')
+        // Underline text (__text__)
+        .replace(/__(.*?)__/g, '<span class="underline">$1</span>')
+        // Strikethrough text (~~text~~)
+        .replace(
+            /~~(.*?)~~/g,
+            '<span class="font-extrabold bg-amber-700 px-2 text-white rounded-br-sm -ml-0.5">$1</span>'
+        );

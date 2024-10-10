@@ -1,4 +1,4 @@
-import { applyModifiers, checkTriggers, findPontentialTargets } from ".";
+import { applyModifiers, checkTriggers, findPotentialTargets } from ".";
 import useGameStore from "..";
 import {
     Action,
@@ -7,6 +7,7 @@ import {
     CardAction,
     Event,
     GameState,
+    Player,
 } from "../../types/game";
 import { moveToDiscard } from "../actions";
 
@@ -43,7 +44,7 @@ export function generateActionChecks(
                 return null;
             }
 
-            const potentialTargets = findPontentialTargets(_);
+            const potentialTargets = findPotentialTargets(_, thisCard);
 
             if (potentialTargets.length === 0) {
                 return null;
@@ -52,24 +53,13 @@ export function generateActionChecks(
             return { type: "challenge", card: thisCard };
         },
         ink: (_: GameState, thisCard: Card) => {
-            if (!thisCard.inkwell) {
+            if (!thisCard.inkwell || thisCard.zone !== "hand") {
                 return null;
             }
             return { type: "ink", card: thisCard };
         },
-        ability: (_: GameState, thisCard: Card) => {
-            const inkDrying =
-                thisCard.turnPlayed !== null && thisCard.turnPlayed >= _.turn;
-            const isAction = thisCard.type === "action";
-            const player = _.players[_.currentPlayer];
-
-            if (isAction && player.availableInk < thisCard.cost) {
-                return { type: "ability", card: thisCard };
-            }
-            if (thisCard.exerted || inkDrying || thisCard.zone !== "field") {
-                return null;
-            }
-            return { type: "ability", card: thisCard };
+        ability: () => {
+            return null;
         },
         draw: (_: GameState, thisCard: Card) => {
             return { type: "draw", card: thisCard };
@@ -165,7 +155,7 @@ export function generateActions(
                 return gameState;
             }
 
-            const potentialTargets = findPontentialTargets(gameState);
+            const potentialTargets = findPotentialTargets(gameState, thisCard);
 
             gameState.inputStage = {
                 prompt: "Select a target to challenge:",
@@ -233,7 +223,7 @@ export function generateActions(
                                 attacker: thisCard,
                                 defender: targetCard,
                             });
-                            console.log("Combat", damageReceived, damageDealt);
+                            console.info("Combat", damageReceived, damageDealt);
 
                             thisCard.exerted = true;
 
@@ -366,4 +356,86 @@ export function create(card: BaseCard, ownerId: string): Card {
 
 export function createCards(cards: BaseCard[], ownerId: string): Card[] {
     return cards.map(c => create(c, ownerId));
+}
+
+// check/action utils
+export function getAttackerField(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].field;
+}
+
+export function getAttackerFieldCharacters(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].field.filter(
+        card => card.type === "character"
+    );
+}
+
+export function getAttackerFieldItems(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].field.filter(
+        card => card.type === "item"
+    );
+}
+
+export function getDefenderField(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer === 0 ? 1 : 0].field;
+}
+
+export function getDefenderFieldCharacters(gameState: GameState): Card[] {
+    return gameState.players[
+        gameState.currentPlayer === 0 ? 1 : 0
+    ].field.filter(card => card.type === "character");
+}
+
+export function getDefenderFieldItems(gameState: GameState): Card[] {
+    return gameState.players[
+        gameState.currentPlayer === 0 ? 1 : 0
+    ].field.filter(card => card.type === "item");
+}
+
+export function getAttackerHand(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].hand;
+}
+
+export function getDefenderHand(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer === 0 ? 1 : 0].hand;
+}
+
+export function getAttackerInkwell(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].inkwell;
+}
+
+export function getDefenderInkwell(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer === 0 ? 1 : 0].inkwell;
+}
+
+export function getXCardFromPlayerDeck(
+    gameState: GameState,
+    playerIdx: number,
+    num: number
+): Card[] {
+    return gameState.players[playerIdx].deck.slice(0, num);
+}
+
+export function exertPlayerCard(player: Player, card: Card) {
+    player.field = player.field.map(c =>
+        c.id === card.id ? { ...c, exerted: true } : c
+    );
+    return player;
+}
+
+export function baseAbilityCheck(
+    gameState: GameState,
+    thisCard: Card
+): CardAction | null {
+    const inkDrying =
+        thisCard.turnPlayed !== null && thisCard.turnPlayed >= gameState.turn;
+    const isAction = thisCard.type === "action";
+    const player = gameState.players[gameState.currentPlayer];
+
+    if (isAction && player.availableInk < thisCard.cost) {
+        return { type: "ability", card: thisCard };
+    }
+    if (thisCard.exerted || inkDrying || thisCard.zone !== "field") {
+        return null;
+    }
+    return { type: "ability", card: thisCard };
 }

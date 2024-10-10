@@ -18,6 +18,7 @@ export type GameState = {
         showDialogue?: boolean;
         callback: (choice: string | Card | Card[]) => void;
     } | null;
+    turnFlags: Partial<Record<Action, boolean>>;
 };
 
 export type Player = {
@@ -49,6 +50,9 @@ export type Modifier = {
     turnApplied: number;
     hasTriggered: boolean;
 };
+
+// TODO: implement resist and challenger
+export type StaticAbility = "evasive" | "resist" | "challenger";
 
 export type BaseCard = {
     implemented: boolean;
@@ -84,6 +88,7 @@ export type BaseCard = {
         Event,
         (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
     >;
+    staticAbilities: Record<StaticAbility, { active: boolean; value?: number }>;
 };
 
 export type Card = BaseCard & {

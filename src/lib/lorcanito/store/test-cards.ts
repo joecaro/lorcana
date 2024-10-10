@@ -1,12 +1,18 @@
 import {
+    baseAbilityCheck,
+    exertPlayerCard,
     generateActionChecks,
     generateActions,
     generateTriggers,
+    getAttackerFieldCharacters,
+    getDefenderFieldCharacters,
+    getDefenderFieldItems,
+    getXCardFromPlayerDeck,
 } from "./utils/cards";
 import { BaseCard } from "../types/game";
 import { drawCard, findHealableCards } from "./utils";
 import useGameStore from ".";
-import { moveToDiscard } from "./actions";
+import { damageCard, moveToDiscard } from "./actions";
 
 const cards: BaseCard[] = [
     {
@@ -16,23 +22,37 @@ const cards: BaseCard[] = [
         title: "Gentle Fetcher",
         characteristics: ["princess", "good girl"],
         text: [
-            "**Fetch** - When this character enters play, draw a card.",
-            "**Rainey Day** - ->: Heal 1 damage for target character.",
+            "~~Fetch~~ - When this character enters play, draw a card.",
+            "~~Rainey Day~~ - ->: Heal 1 damage for target character.",
         ],
         type: "character",
         flavour:
-            "Rainy is a gentle fetcher, always ready to lend a helping paw.",
+            "Rainey is a gentle fetcher, always ready to lend a helping paw.",
         inkwell: true,
         color: "amber",
         cost: 2,
         strength: 1,
         willpower: 3,
         lore: 2,
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({
-            ability: gameState => {
+        actionChecks: generateActionChecks({
+            ability: (gameState, thisCard) => {
+                if (!baseAbilityCheck(gameState, thisCard)) {
+                    return null;
+                }
                 const healabeCards = findHealableCards(gameState);
-                if (healabeCards.length === 0) return gameState;
+                if (healabeCards.length === 0) {
+                    console.info("No healable cards");
+                    return null;
+                }
+                return {
+                    type: "ability",
+                    card: thisCard,
+                };
+            },
+        }),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                const healabeCards = findHealableCards(gameState);
                 gameState.inputStage = {
                     type: "play",
                     options: healabeCards,
@@ -43,16 +63,16 @@ const cards: BaseCard[] = [
                                 if (
                                     typeof choice === "string" ||
                                     Array.isArray(choice)
-                                )
+                                ) {
                                     return state;
-                                const player =
-                                    state.players[state.currentPlayer];
-                                const target = player[choice.zone].find(
-                                    card => card.id === choice.id
-                                );
-                                if (!target) return state;
+                                }
 
-                                player[choice.zone] = player[choice.zone].map(
+                                const currentPlayerIndex = state.currentPlayer;
+                                const player =
+                                    state.players[currentPlayerIndex];
+
+                                // Create a new copy of the target zone with the updated card
+                                const updatedZone = player[choice.zone].map(
                                     card =>
                                         card.id === choice.id
                                             ? {
@@ -62,8 +82,30 @@ const cards: BaseCard[] = [
                                             : card
                                 );
 
-                                state.inputStage = null;
-                                return { ...state };
+                                // Create a new copy of the player's hand with the exerted card
+                                const updatedHand = player.hand.map(card =>
+                                    card.id === thisCard.id
+                                        ? { ...card, exerted: true }
+                                        : card
+                                );
+
+                                // Return a new state object with all changes applied immutably
+                                const updatedPlayers = state.players.map(
+                                    (p, index) =>
+                                        index === currentPlayerIndex
+                                            ? {
+                                                  ...p,
+                                                  [choice.zone]: updatedZone,
+                                                  hand: updatedHand,
+                                              }
+                                            : p
+                                );
+
+                                return {
+                                    ...state,
+                                    players: updatedPlayers,
+                                    inputStage: null,
+                                };
                             },
                             false,
                             { type: "Rainey Day" }
@@ -81,6 +123,11 @@ const cards: BaseCard[] = [
                 return gameState;
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -96,7 +143,7 @@ const cards: BaseCard[] = [
         foilUrl: "/foil/storm-enchanter.jpg",
         characteristics: ["storyborn", "sorcerer"],
         text: [
-            "**Stormborn** - This character gains +1 willpower when challenging.",
+            "~~Stormborn~~ - This character gains +1 willpower when challenging.",
         ],
         type: "character",
         flavour:
@@ -110,6 +157,11 @@ const cards: BaseCard[] = [
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -133,7 +185,7 @@ const cards: BaseCard[] = [
         title: "Sinister Spell",
         characteristics: ["arcane", "dark magic"],
         text: [
-            "**Life Drain** - Sacrifice 2 strength from an allied character to deal 4 damage to an enemy character.",
+            "~~Life Drain~~ - Sacrifice 2 strength from an allied character to deal 4 damage to an enemy character.",
         ],
         type: "action",
         flavour:
@@ -146,19 +198,14 @@ const cards: BaseCard[] = [
         lore: 0, // Actions generally do not contribute to lore directly
         actionChecks: generateActionChecks({
             ability: (gameState, thisCard) => {
-                if (thisCard.zone !== "field" || thisCard.exerted) {
-                    console.log(
-                        "Card must be in play to use ability and be ready"
-                    );
+                if (!baseAbilityCheck(gameState, thisCard)) {
                     return null;
                 }
                 if (
-                    gameState.players[gameState.currentPlayer].field.length <
-                        2 ||
-                    gameState.players[(gameState.currentPlayer + 1) % 2].field
-                        .length === 0
+                    getAttackerFieldCharacters(gameState).length < 2 ||
+                    getDefenderFieldCharacters(gameState).length === 0
                 ) {
-                    console.log("Not enough characters to sacrifice");
+                    console.info("Not enough characters to sacrifice");
 
                     return null;
                 }
@@ -169,7 +216,7 @@ const cards: BaseCard[] = [
             },
         }),
         actions: generateActions({
-            ability: gameState => {
+            ability: (gameState, thisCard) => {
                 gameState.inputStage = {
                     type: "ability",
                     options: gameState.players[gameState.currentPlayer].field,
@@ -181,68 +228,159 @@ const cards: BaseCard[] = [
                                 if (
                                     typeof choice === "string" ||
                                     Array.isArray(choice)
-                                )
+                                ) {
                                     return state;
-                                const player =
-                                    state.players[state.currentPlayer];
-                                const target = player[choice.zone].find(
-                                    card => card.id === choice.id
-                                );
-                                if (!target) return state;
-
-                                target.strength -= 2;
-
-                                if (target.strength <= 0) {
-                                    state.players = moveToDiscard(
-                                        state,
-                                        target
-                                    );
                                 }
 
-                                state.inputStage = {
-                                    type: "play",
-                                    options:
-                                        state.players[
-                                            (state.currentPlayer + 1) % 2
-                                        ].field,
-                                    maxSelections: 1,
-                                    prompt: "Choose a character to damage",
-                                    callback: choice => {
-                                        useGameStore.setState(
-                                            state => {
-                                                if (
-                                                    typeof choice ===
-                                                        "string" ||
-                                                    Array.isArray(choice)
-                                                )
-                                                    return state;
-                                                const target = state.players[
-                                                    (state.currentPlayer + 1) %
-                                                        2
-                                                ].field.find(
-                                                    card =>
-                                                        card.id === choice.id
-                                                );
-                                                if (!target) return state;
+                                const currentPlayerIndex = state.currentPlayer;
+                                const player =
+                                    state.players[currentPlayerIndex];
 
-                                                target.strength -= 4;
+                                // Create a new copy of the target zone with the updated card's strength reduced
+                                const updatedZone = player[choice.zone].map(
+                                    card =>
+                                        card.id === choice.id
+                                            ? {
+                                                  ...card,
+                                                  strength: card.strength - 2,
+                                              }
+                                            : card
+                                );
 
-                                                if (target.strength <= 0) {
-                                                    state.players =
-                                                        moveToDiscard(
-                                                            state,
-                                                            target
-                                                        );
+                                // Move the target to the discard pile if its strength is zero or less
+                                const updatedPlayers = player[choice.zone].some(
+                                    card =>
+                                        card.id === choice.id &&
+                                        card.strength - 2 <= 0
+                                )
+                                    ? moveToDiscard(
+                                          { ...state, players: state.players },
+                                          player[choice.zone].find(
+                                              card => card.id === choice.id
+                                          )!
+                                      )
+                                    : state.players.map(p =>
+                                          p.id === player.id
+                                              ? {
+                                                    ...p,
+                                                    [choice.zone]: updatedZone,
                                                 }
+                                              : p
+                                      );
 
-                                                return { ...state };
-                                            },
-                                            false,
-                                            { type: "Life Drain Attack" }
-                                        );
+                                return {
+                                    ...state,
+                                    players: updatedPlayers,
+                                    inputStage: {
+                                        type: "play",
+                                        options:
+                                            state.players[
+                                                (state.currentPlayer + 1) % 2
+                                            ].field,
+                                        maxSelections: 1,
+                                        prompt: "Choose a character to damage",
+                                        callback: choice => {
+                                            useGameStore.setState(
+                                                state => {
+                                                    if (
+                                                        typeof choice ===
+                                                            "string" ||
+                                                        Array.isArray(choice)
+                                                    ) {
+                                                        return state;
+                                                    }
+
+                                                    const opponentIndex =
+                                                        (state.currentPlayer +
+                                                            1) %
+                                                        2;
+                                                    const target =
+                                                        state.players[
+                                                            opponentIndex
+                                                        ].field.find(
+                                                            card =>
+                                                                card.id ===
+                                                                choice.id
+                                                        );
+
+                                                    if (!target) return state;
+
+                                                    // Update the target's strength immutably
+                                                    const updatedOpponentField =
+                                                        state.players[
+                                                            opponentIndex
+                                                        ].field.map(card =>
+                                                            card.id ===
+                                                            choice.id
+                                                                ? {
+                                                                      ...card,
+                                                                      strength:
+                                                                          card.strength -
+                                                                          4,
+                                                                  }
+                                                                : card
+                                                        );
+
+                                                    // Move target to discard if its strength falls to zero or below
+                                                    const updatedPlayers =
+                                                        target.strength - 4 <= 0
+                                                            ? moveToDiscard(
+                                                                  {
+                                                                      ...state,
+                                                                      players:
+                                                                          state.players,
+                                                                  },
+                                                                  target
+                                                              )
+                                                            : state.players.map(
+                                                                  (
+                                                                      player,
+                                                                      idx
+                                                                  ) =>
+                                                                      idx ===
+                                                                      opponentIndex
+                                                                          ? {
+                                                                                ...player,
+                                                                                field: updatedOpponentField,
+                                                                            }
+                                                                          : player
+                                                              );
+
+                                                    // Exert the thisCard on the field of its owner immutably
+                                                    const exertedPlayers =
+                                                        updatedPlayers.map(
+                                                            player =>
+                                                                player.id ===
+                                                                thisCard.owner
+                                                                    ? {
+                                                                          ...player,
+                                                                          field: player.field.map(
+                                                                              card =>
+                                                                                  card.id ===
+                                                                                  thisCard.id
+                                                                                      ? {
+                                                                                            ...card,
+                                                                                            exerted:
+                                                                                                true,
+                                                                                        }
+                                                                                      : card
+                                                                          ),
+                                                                      }
+                                                                    : player
+                                                        );
+
+                                                    return {
+                                                        ...state,
+                                                        players: exertedPlayers,
+                                                        inputStage: null,
+                                                    };
+                                                },
+                                                false,
+                                                { type: "Life Drain Attack" }
+                                            );
+                                        },
                                     },
                                 };
-                                return { ...state };
                             },
                             false,
                             { type: "Life Drain Sacrifice" }
@@ -254,6 +392,11 @@ const cards: BaseCard[] = [
             },
         }),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 9,
@@ -262,14 +405,13 @@ const cards: BaseCard[] = [
         modifiers: [],
     },
     {
-        // TODO: add field modifiers
         implemented: true,
         url: "/cards/celestial-beacon.webp",
         name: "CELESTIAL BEACON",
         title: "Radiant Artifact",
         characteristics: ["artifact", "celestial"],
         text: [
-            "**Radiant Light** - All allies gain +1 lore while this item remains on the field.",
+            "~~Radiant Light~~ - All allies gain +1 lore while this item remains on the field.",
         ],
         type: "item",
         flavour:
@@ -304,6 +446,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 8,
@@ -318,7 +465,7 @@ const cards: BaseCard[] = [
         title: "Nimble Tracker",
         characteristics: ["storyborn", "scout"],
         text: [
-            "**Warning Call** - When this character is played, look at the top 3 cards of your deck and move one to your hand.",
+            "~~Warning Call~~ - When this character is played, look at the top 3 cards of your deck and move one to your hand.",
         ],
         type: "character",
         flavour:
@@ -335,9 +482,11 @@ const cards: BaseCard[] = [
             play: (gameState, thisCard, thatCard) => {
                 if (thatCard?.id === thisCard.id) {
                     // Look at the top 3 cards of your deck
-                    const top3Cards = gameState.players[
-                        gameState.currentPlayer
-                    ].deck.slice(0, 3);
+                    const top3Cards = getXCardFromPlayerDeck(
+                        gameState,
+                        gameState.currentPlayer,
+                        3
+                    );
 
                     gameState.inputStage = {
                         type: "play",
@@ -351,20 +500,41 @@ const cards: BaseCard[] = [
                                     if (
                                         typeof choice === "string" ||
                                         Array.isArray(choice)
-                                    )
-                                        return gameState;
-                                    state.players[
-                                        state.currentPlayer
-                                    ].hand.push(choice);
-                                    state.players[state.currentPlayer].deck =
-                                        state.players[
-                                            state.currentPlayer
-                                        ].deck.filter(
-                                            card => card.id !== choice.id
-                                        );
-                                    state.inputStage = null;
+                                    ) {
+                                        return { ...state };
+                                    }
 
-                                    return { ...state };
+                                    const currentPlayerIndex =
+                                        state.currentPlayer;
+
+                                    const updatedHand = [
+                                        ...state.players[currentPlayerIndex]
+                                            .hand,
+                                        choice,
+                                    ];
+
+                                    const updatedDeck = state.players[
+                                        currentPlayerIndex
+                                    ].deck.filter(
+                                        card => card.id !== choice.id
+                                    );
+
+                                    const updatedPlayers = state.players.map(
+                                        (player, index) =>
+                                            index === currentPlayerIndex
+                                                ? {
+                                                      ...player,
+                                                      hand: updatedHand,
+                                                      deck: updatedDeck,
+                                                  }
+                                                : player
+                                    );
+
+                                    return {
+                                        ...state,
+                                        players: updatedPlayers,
+                                        inputStage: null,
+                                    };
                                 },
                                 false,
                                 { type: "Warning Call" }
@@ -375,6 +545,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 7,
@@ -389,7 +564,7 @@ const cards: BaseCard[] = [
         title: "Noble Warrior",
         characteristics: ["storyborn", "knight"],
         text: [
-            "**Valor** - Charcter gains **Challenger +1** (Challenger willpower increases by 1 when challenging)",
+            "~~Valor~~ - Charcter gains **Challenger +1** (Challenger willpower increases by 1 when challenging)",
         ],
         type: "character",
         flavour:
@@ -403,6 +578,11 @@ const cards: BaseCard[] = [
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -426,7 +606,7 @@ const cards: BaseCard[] = [
         title: "Enchanted Weapon",
         characteristics: ["enchanted", "weapon"],
         text: [
-            "**Empower** - Exert this item to give a friendly character +3 strength for this turn.",
+            "~~Empower~~ - Exert this item to give a friendly character +3 willpower for this turn.",
         ],
         type: "item",
         flavour:
@@ -438,16 +618,27 @@ const cards: BaseCard[] = [
         willpower: 0, // Item cards typically do not have inherent willpower
         lore: 0, // Items generally do not contribute to lore directly
         actionChecks: generateActionChecks({
-            ability: () => {
-                // TODO: IMPLEMENT TEMP BUFFS
-                return null;
+            ability: (gameState, thisCard) => {
+                if (!baseAbilityCheck(gameState, thisCard)) {
+                    return null;
+                }
+
+                if (getAttackerFieldCharacters(gameState).length === 0) {
+                    console.info("No characters to empower");
+                    return null;
+                }
+
+                return {
+                    type: "ability",
+                    card: thisCard,
+                };
             },
         }),
         actions: generateActions({
-            ability: gameState => {
+            ability: (gameState, thisCard) => {
                 gameState.inputStage = {
                     type: "ability",
-                    options: gameState.players[gameState.currentPlayer].field,
+                    options: getAttackerFieldCharacters(gameState),
                     prompt: "Choose a character to empower",
                     callback: choice => {
                         useGameStore.setState(
@@ -455,27 +646,58 @@ const cards: BaseCard[] = [
                                 if (
                                     typeof choice === "string" ||
                                     Array.isArray(choice)
-                                )
+                                ) {
                                     return state;
-                                const player =
-                                    state.players[state.currentPlayer];
-                                const target = player[choice.zone].find(
-                                    card => card.id === choice.id
-                                );
-                                if (!target) return state;
+                                }
 
-                                player[choice.zone] = player[choice.zone].map(
+                                const currentPlayerIndex = state.currentPlayer;
+                                const player =
+                                    state.players[currentPlayerIndex];
+
+                                // Create a new copy of the target zone with the updated card that has the new modifier
+                                const updatedZone = player[choice.zone].map(
                                     card =>
                                         card.id === choice.id
                                             ? {
                                                   ...card,
-                                                  strength: card.strength + 3,
+                                                  modifiers:
+                                                      card.modifiers.concat({
+                                                          value: 3,
+                                                          duration:
+                                                              "until_end_of_turn",
+                                                          stat: "willpower",
+                                                          type: "challenge",
+                                                          turnApplied:
+                                                              state.turn,
+                                                          hasTriggered: false,
+                                                      }),
                                               }
                                             : card
                                 );
 
-                                state.inputStage = null;
-                                return { ...state };
+                                // Create a new player object with the updated zone
+                                const updatedPlayer = {
+                                    ...player,
+                                    [choice.zone]: updatedZone,
+                                };
+
+                                const exertedPlayer = exertPlayerCard(
+                                    updatedPlayer,
+                                    thisCard
+                                );
+
+                                const updatedPlayers = state.players.map(
+                                    (p, index) =>
+                                        index === currentPlayerIndex
+                                            ? exertedPlayer
+                                            : p
+                                );
+
+                                return {
+                                    ...state,
+                                    players: updatedPlayers,
+                                    inputStage: null,
+                                };
                             },
                             false,
                             { type: "EMPOWER" }
@@ -486,6 +708,11 @@ const cards: BaseCard[] = [
             },
         }),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 6,
@@ -499,7 +726,7 @@ const cards: BaseCard[] = [
         name: "ANCIENT PROTECTOR",
         title: "Guardian of the Old Realms",
         text: [
-            "**Rooted Defense** - All friendly characters gain +1 willpower as long as this character is on the field.",
+            "~~Rooted Defense~~ - All friendly characters gain +1 willpower as long as this character is on the field.",
         ],
         characteristics: ["storyborn", "guardian"],
         flavour:
@@ -536,6 +763,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 5,
@@ -550,7 +782,8 @@ const cards: BaseCard[] = [
         title: "Mystic Mage",
         characteristics: ["storyborn", "sorcerer"],
         text: [
-            "**Arcane Knowledge** - When this character enters play, draw a card.",
+            "~~Arcane Knowledge~~ - When this character enters play, draw a card.",
+            "**Evasive** - Only characters with Evasive can challenge this character.",
         ],
         type: "character",
         flavour:
@@ -571,6 +804,11 @@ const cards: BaseCard[] = [
                 return gameState;
             },
         }),
+        staticAbilities: {
+            evasive: { active: true },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -585,7 +823,7 @@ const cards: BaseCard[] = [
         title: "Fiery Fiend",
         characteristics: ["storyborn", "sorcerer"],
         text: [
-            "**Fiery Plume** - When this character enters play, deal 1 damage to target character.",
+            "~~Fiery Plume~~ - When this character enters play, deal 1 damage to target character.",
         ],
         type: "character",
         flavour:
@@ -603,31 +841,26 @@ const cards: BaseCard[] = [
                 if (thatCard?.id === thisCard.id) {
                     useGameStore.setState(
                         state => {
+                            if (
+                                getDefenderFieldCharacters(state).length === 0
+                            ) {
+                                console.info("No characters to damage");
+                                return state;
+                            }
+
                             state.inputStage = {
                                 type: "ability",
-                                options:
-                                    state.players[(state.currentPlayer + 1) % 2]
-                                        .field,
+                                options: getDefenderFieldCharacters(state),
                                 prompt: "Choose a character to damage",
                                 callback: choice => {
                                     if (
                                         typeof choice === "string" ||
                                         Array.isArray(choice)
-                                    )
+                                    ) {
                                         return state;
-                                    const target = state.players[
-                                        (state.currentPlayer + 1) % 2
-                                    ].field.find(card => card.id === choice.id);
-                                    if (!target) return state;
-                                    target.strength -= 1;
-                                    if (target.strength <= 0) {
-                                        state.players = moveToDiscard(
-                                            state,
-                                            target
-                                        );
                                     }
-                                    state.inputStage = null;
-                                    return { ...state };
+
+                                    return damageCard(state, choice, 1);
                                 },
                             };
 
@@ -641,6 +874,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 1,
@@ -655,9 +893,9 @@ const cards: BaseCard[] = [
         title: "Guiding Light",
         characteristics: ["storyborn", "puppy"],
         text: [
-            "**Soothing Light** - When this character enters play, heal 1 damage from target character.",
+            "~~Soothing Light~~ - When this character enters play, heal 1 damage from target character.",
             "**Loyal** - This character can't attack.",
-            "**Teef** - ->: Take 1 ITEM from any player",
+            "~~Teef~~ - ->: Take 1 ITEM from any player",
         ],
         type: "character",
         flavour:
@@ -668,16 +906,27 @@ const cards: BaseCard[] = [
         strength: 3,
         willpower: 4,
         lore: 2,
-        actionChecks: generateActionChecks({}),
+        actionChecks: generateActionChecks({
+            ability: (gameState, thisCard) => {
+                if (!baseAbilityCheck(gameState, thisCard)) {
+                    return null;
+                }
+
+                if (getDefenderFieldItems(gameState).length === 0) {
+                    console.info("No items to steal");
+                    return null;
+                }
+                return {
+                    type: "ability",
+                    card: thisCard,
+                };
+            },
+        }),
         actions: generateActions({
-            ability: gameState => {
-                const options = gameState.players[
-                    (gameState.currentPlayer + 1) % 2
-                ].field.filter(card => card.type === "item");
-                if (options.length === 0) return gameState;
+            ability: (gameState, thisCard) => {
                 gameState.inputStage = {
                     type: "ability",
-                    options: options,
+                    options: getDefenderFieldItems(gameState),
                     prompt: "Choose an item to steal",
                     callback: choice => {
                         useGameStore.setState(
@@ -685,33 +934,56 @@ const cards: BaseCard[] = [
                                 if (
                                     typeof choice === "string" ||
                                     Array.isArray(choice)
-                                )
+                                ) {
                                     return state;
+                                }
+
+                                const opponentIndex =
+                                    state.currentPlayer === 0 ? 1 : 0;
                                 const target = state.players[
-                                    state.currentPlayer === 0 ? 1 : 0
+                                    opponentIndex
                                 ].field.find(card => card.id === choice.id);
+
                                 if (!target) return state;
 
-                                state.players = state.players.map(player => {
-                                    if (player.id === state.attacker) {
-                                        return {
-                                            ...player,
-                                            field: player.field.concat({
-                                                ...target,
-                                                owner: player.id,
-                                            }),
-                                        };
-                                    } else {
-                                        return {
-                                            ...player,
-                                            field: player.field.filter(
-                                                card => card.id !== choice.id
-                                            ),
-                                        };
+                                // Create a new players array with the updated player states
+                                const updatedPlayers = state.players.map(
+                                    player => {
+                                        if (player.id === state.attacker) {
+                                            // Add the target card to the attacker's field
+                                            return {
+                                                ...player,
+                                                field: player.field.concat({
+                                                    ...target,
+                                                    owner: player.id,
+                                                }),
+                                            };
+                                        } else {
+                                            // Remove the target card from the opponent's field
+                                            return {
+                                                ...player,
+                                                field: player.field.filter(
+                                                    card =>
+                                                        card.id !== choice.id
+                                                ),
+                                            };
+                                        }
                                     }
-                                });
+                                );
 
-                                return { ...state };
+                                // Create a new players array with the exerted card state update
+                                const exertedPlayers = updatedPlayers.map(
+                                    player =>
+                                        player.id === thisCard.owner
+                                            ? exertPlayerCard(player, thisCard)
+                                            : player
+                                );
+
+                                // Return a new state object with the updated players
+                                return {
+                                    ...state,
+                                    players: exertedPlayers,
+                                };
                             },
                             false,
                             { type: "TEEF" }
@@ -752,6 +1024,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 2,
@@ -766,7 +1043,7 @@ const cards: BaseCard[] = [
         title: "Guardian of the Frozen Realm",
         characteristics: ["storyborn", "warden"],
         text: [
-            "**Frozen Shield** - When this character enters play, prevent the next 2 damage dealt to any friendly character.",
+            "~~Frozen Shield~~ - When this character enters play, prevent the next 2 damage dealt to any friendly character.",
         ],
         type: "character",
         flavour:
@@ -798,6 +1075,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 10,
@@ -812,7 +1094,7 @@ const cards: BaseCard[] = [
         title: "Radiant Shield",
         characteristics: ["artifact", "armor"],
         text: [
-            "**Solar Resilience** - Exert this item to give a character +2 willpower until the end of turn.",
+            "~~Solar Resilience~~ - Exert this item to give a character +2 strength until the end of turn.",
         ],
         type: "item",
         flavour:
@@ -823,30 +1105,87 @@ const cards: BaseCard[] = [
         strength: 0,
         willpower: 0,
         lore: 0,
-        actionChecks: generateActionChecks({}),
+        actionChecks: generateActionChecks({
+            ability: (gameState, thisCard) => {
+                if (!baseAbilityCheck(gameState, thisCard)) {
+                    return null;
+                }
+
+                if (getAttackerFieldCharacters(gameState).length === 0) {
+                    console.info("No characters to buff");
+                    return null;
+                }
+
+                return {
+                    type: "ability",
+                    card: thisCard,
+                };
+            },
+        }),
         actions: generateActions({
-            ability: gameState => {
+            ability: (gameState, thisCard) => {
                 gameState.inputStage = {
                     type: "ability",
-                    options: gameState.players[gameState.currentPlayer].field,
+                    options: getAttackerFieldCharacters(gameState),
                     prompt: "Choose a character to boost",
                     callback: choice => {
                         useGameStore.setState(state => {
                             if (
                                 typeof choice === "string" ||
                                 Array.isArray(choice)
-                            )
+                            ) {
                                 return state;
-                            const player = state.players[state.currentPlayer];
+                            }
+
+                            const currentPlayerIndex = state.currentPlayer;
+                            const player = state.players[currentPlayerIndex];
+
+                            // Find the target card on the player's field
                             const target = player.field.find(
                                 card => card.id === choice.id
                             );
                             if (!target) return state;
 
-                            target.willpower += 2;
+                            // Create a new field array with the updated card modifiers
+                            const updatedField = player.field.map(card =>
+                                card.id === choice.id
+                                    ? {
+                                          ...card,
+                                          modifiers: card.modifiers.concat({
+                                              value: 2,
+                                              duration: "until_end_of_turn",
+                                              stat: "strength",
+                                              type: "challenge",
+                                              turnApplied: state.turn,
+                                              hasTriggered: false,
+                                          }),
+                                      }
+                                    : card
+                            );
 
-                            state.inputStage = null;
-                            return { ...state };
+                            // Update the player object immutably
+                            const updatedPlayer = exertPlayerCard(
+                                {
+                                    ...player,
+                                    field: updatedField,
+                                },
+                                thisCard
+                            );
+
+                            // Create a new players array with the updated player object
+                            const updatedPlayers = state.players.map(
+                                (p, index) =>
+                                    index === currentPlayerIndex
+                                        ? updatedPlayer
+                                        : p
+                            );
+
+                            // Return a new state object with the updated players and cleared input stage
+                            return {
+                                ...state,
+                                players: updatedPlayers,
+                                inputStage: null,
+                            };
                         });
                     },
                 };
@@ -854,6 +1193,11 @@ const cards: BaseCard[] = [
             },
         }),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 11,
@@ -868,7 +1212,7 @@ const cards: BaseCard[] = [
         title: "Wielder of Flames",
         characteristics: ["storyborn", "sorcerer"],
         text: [
-            "**Flame Conjure** - When this character enters play, deal 2 damage to all enemy characters.",
+            "~~Flame Conjure~~ - When this character enters play, deal 2 damage to all enemy characters.",
         ],
         type: "character",
         flavour:
@@ -896,6 +1240,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 12,
@@ -910,7 +1259,7 @@ const cards: BaseCard[] = [
         title: "Sage of the Ages",
         characteristics: ["storyborn", "mage"],
         text: [
-            "**Arcane Insight** - When this character is played, look at the top 5 cards of your deck and rearrange them.",
+            "~~Arcane Insight~~ - When this character is played, look at the top 5 cards of your deck and rearrange them.",
         ],
         type: "character",
         flavour:
@@ -957,6 +1306,11 @@ const cards: BaseCard[] = [
                 return { ...gameState };
             },
         }),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 13,
@@ -971,7 +1325,7 @@ const cards: BaseCard[] = [
         title: "Earthbound Juggernaut",
         characteristics: ["storyborn", "giant"],
         text: [
-            "**Entangling Vines** - When this character challenges, reduce the target's willpower by 2.",
+            "~~Entangling Vines~~ - When this character challenges, reduce the target's willpower by 2.",
         ],
         type: "character",
         flavour:
@@ -985,6 +1339,11 @@ const cards: BaseCard[] = [
         actionChecks: generateActionChecks({}),
         actions: generateActions({}),
         triggers: generateTriggers({}),
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+        },
         illustrator: "GPT4o",
         language: "EN",
         number: 14,

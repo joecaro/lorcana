@@ -52,8 +52,6 @@ export default function TestPage() {
                                                         "border-green-500"
                                                 )}
                                                 onClick={() => {
-                                                    console.log("Clicked card");
-
                                                     if (!inputStage) return;
 
                                                     if (highlighted) {

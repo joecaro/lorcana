@@ -14,6 +14,8 @@ import { computeAvailableActions } from "@/lib/lorcanito/store/utils";
 import { PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
 import { Card } from "../ui/card";
 import CardSelect from "./card-select";
+import useGameInitializer from "./initializer";
+
 
 type DropZoneProps = {
     id: string;
@@ -37,15 +39,7 @@ const DropZone: React.FC<DropZoneProps> = ({
     });
     const players = useGameStore(state => state.players);
     const currentPlayerIndex = useGameStore(state => state.currentPlayer);
-    const inputStage = useGameStore(state => state.inputStage);
     const availableInk = players[currentPlayerIndex].availableInk;
-
-    const isOption = (card: CardType) =>
-        !!inputStage &&
-        !!inputStage.options.find(
-            c => typeof c === "object" && c.id === card.id
-        );
-
     return (
         <motion.div
             ref={setNodeRef}
@@ -71,6 +65,7 @@ const DropZone: React.FC<DropZoneProps> = ({
 };
 
 export default function Board() {
+    useGameInitializer();
     const players = useGameStore(state => state.players);
     const currentPlayerIndex = useGameStore(state => state.currentPlayer);
     const inputStage = useGameStore(state => state.inputStage);
@@ -107,7 +102,7 @@ export default function Board() {
             // );
         } else if (sourceZone) {
             // Card was dropped back into the same zone
-            console.log("Card was dropped back into the same zone");
+            console.info("Card was dropped back into the same zone");
         }
     };
 
@@ -201,7 +196,7 @@ const Options = () => {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [availableActions]);
+    }, [availableActions, attackingPlayer, inputStage]);
 
     return (
         <Card className='bg-black p-4 text-white flex flex-col gap-2 items-stretch absolute right-10 bottom-10'>

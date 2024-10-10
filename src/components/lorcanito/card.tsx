@@ -30,6 +30,7 @@ const CardUI: React.FC<{
             name={card.name}
             title={card.title}
             type={card.type}
+            characteristics={card.characteristics}
             descriptions={card.text}
             flavorText={[card.flavour || ""]}
             willpower={card.willpower}
