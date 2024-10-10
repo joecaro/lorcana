@@ -1,5 +1,5 @@
-import useGameStore from "@/lib/lorcanito/store";
-import { PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
+import useGameStore from "@/lib/lorcana/store";
+import { PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
 import Image from "next/image";
 import { motion } from "framer-motion";
 

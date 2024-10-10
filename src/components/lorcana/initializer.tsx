@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import useGameStore from "@/lib/lorcanito/store";
-import { shuffle } from "@/lib/lorcanito/store/actions";
-import { createCards } from "@/lib/lorcanito/store/utils/cards";
-import { Card } from "@/lib/lorcanito/types/game";
-import cards from "@/lib/lorcanito/store/test-cards";
+import useGameStore from "@/lib/lorcana/store";
+import { shuffle } from "@/lib/lorcana/store/actions";
+import { createCards } from "@/lib/lorcana/store/utils/cards";
+import { Card } from "@/lib/lorcana/types/game";
+import cards from "@/lib/lorcana/store/test-cards";
 
 // Function to shuffle and set the initial deck and hand for the player
 function initializePlayerDeck(playerId: string) {

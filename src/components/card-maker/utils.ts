@@ -1,4 +1,4 @@
-import { CardColor, Rarity } from "./MagicCard";
+import { CardColor, Rarity } from ".";
 
 export const manaIcons: { [key: string]: string } = {
     G: "ms ms-g ms-cost",

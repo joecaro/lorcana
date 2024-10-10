@@ -2,10 +2,10 @@
 import React, { useState, useRef } from "react";
 import { mix, motion } from "framer-motion";
 import { useDraggable } from "@dnd-kit/core";
-import { Card } from "@/lib/lorcanito/types/game";
-import { MagicCard } from "../card-maker";
+import { Card } from "@/lib/lorcana/types/game";
+import { GameCard } from "../card-maker";
 import { cn } from "@/lib/utils";
-import useGameStore from "@/lib/lorcanito/store";
+import useGameStore from "@/lib/lorcana/store";
 
 import "./card.css";
 
@@ -20,7 +20,7 @@ const CardUI: React.FC<{
     hideCardDetails?: boolean;
 }> = ({ card, hideCardDetails }) => {
     return (
-        <MagicCard
+        <GameCard
             className={cn(card.exerted && "opacity-50")}
             cardColor={card.color}
             rarity={card.rarity}

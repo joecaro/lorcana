@@ -1,4 +1,4 @@
-import Game from "@/components/lorcanito";
+import Game from "@/components/lorcana";
 import { Toaster } from "sonner";
 
 export default function Page() {

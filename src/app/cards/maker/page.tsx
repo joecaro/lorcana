@@ -1,5 +1,5 @@
 "use client";
-import CardComp from "@/components/lorcanito/card";
+import CardComp from "@/components/lorcana/card";
 import React from "react";
 
 const MyApp = () => {

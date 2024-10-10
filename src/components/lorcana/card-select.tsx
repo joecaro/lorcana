@@ -1,4 +1,4 @@
-import { Card, GameState } from "@/lib/lorcanito/types/game";
+import { Card, GameState } from "@/lib/lorcana/types/game";
 import CardComp from "./card";
 import { Button } from "../ui/button";
 

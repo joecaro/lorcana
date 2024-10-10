@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import useGameStore from "@/lib/lorcanito/store";
-import { PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
+import useGameStore from "@/lib/lorcana/store";
+import { PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
 // import CardComp from "./card";
 import { cn } from "@/lib/utils";
-import { computeAvailableActions } from "@/lib/lorcanito/store/utils";
+import { computeAvailableActions } from "@/lib/lorcana/store/utils";
 
 export default function TestPage() {
     const players = useGameStore(state => state.players);

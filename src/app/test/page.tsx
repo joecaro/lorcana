@@ -1,4 +1,4 @@
-import TestPage from "@/components/lorcanito/test";
+import TestPage from "@/components/lorcana/test";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function Home() {

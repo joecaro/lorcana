@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 import CardComp from "./card";
-import useGameStore from "@/lib/lorcanito/store";
+import useGameStore from "@/lib/lorcana/store";
 import Hand from "./hand";
 import { Shield } from "lucide-react";
 import Deck from "./deck";
-import { Action, Card as CardType, Player } from "@/lib/lorcanito/types/game";
-import { computeAvailableActions } from "@/lib/lorcanito/store/utils";
-import { moveCardToZone, PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
+import { Action, Card as CardType, Player } from "@/lib/lorcana/types/game";
+import { computeAvailableActions } from "@/lib/lorcana/store/utils";
+import { moveCardToZone, PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
 import { Card } from "../ui/card";
 import CardSelect from "./card-select";
 import useGameInitializer from "./initializer";
