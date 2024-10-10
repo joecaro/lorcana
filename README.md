@@ -4,6 +4,8 @@
 
 This is a deck-building game inspired by the popular game Lorcana. This project aims to explore the logic behind deck-building games while incorporating fun UI challenges such as 3D card animations and holographic effects.
 
+_This is a WIP. There's a lot of missing functionality, and limited cards._
+
 ## Key Features
 
 Deck-building Logic: Implemented core mechanics for deck-building, including shuffling, drawing, and playing cards.
@@ -33,7 +35,9 @@ This will start the application on <http://localhost:3000>.
 
 ### Logic Implementation
 
-The core logic for the deck-building game is implemented in the lib directory. For example, the initial state of a player is generated using the generatePlayerState function in src/lib/lorcanito/cards.ts.
+The core logic for the deck-building game is implemented in the lib directory. For example, the initial state of a player is generated using the generatePlayerState function in src/lib/lorcana/cards.ts.
+
+My custom cards are stored in src/lib/lorcana/store/test-cards.ts, and these can be used as refernce if you want to make new cards. There are unexplored possibilities with the current logic, so have at it.
 
 ### UI Components
 
