@@ -72,15 +72,30 @@ const CardComp: React.FC<{
 
     const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault(); // Prevent browser default behavior
-        const startX = "touches" in e ? e.touches[0].clientX : e.clientX;
-        const startY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+        // Check if the event is a touch event
+        const isTouchEvent = "touches" in e;
+        const startX = isTouchEvent
+            ? (e as React.TouchEvent).touches[0].clientX
+            : (e as React.MouseEvent).clientX;
+        const startY = isTouchEvent
+            ? (e as React.TouchEvent).touches[0].clientY
+            : (e as React.MouseEvent).clientY;
+
         startPos.current = { x: startX, y: startY };
     };
 
     const handleMouseUp = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
-        const endX = "touches" in e ? e.touches[0].clientX : e.clientX;
-        const endY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+        // Check if the event is a touch event
+        const isTouchEvent = "changedTouches" in e;
+        const endX = isTouchEvent
+            ? (e as React.TouchEvent).changedTouches[0].clientX
+            : (e as React.MouseEvent).clientX;
+        const endY = isTouchEvent
+            ? (e as React.TouchEvent).changedTouches[0].clientY
+            : (e as React.MouseEvent).clientY;
 
         // Check if the mouse movement was within the threshold to be considered a click
         if (startPos.current) {

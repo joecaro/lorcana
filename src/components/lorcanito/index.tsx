@@ -11,11 +11,10 @@ import { Shield } from "lucide-react";
 import Deck from "./deck";
 import { Action, Card as CardType, Player } from "@/lib/lorcanito/types/game";
 import { computeAvailableActions } from "@/lib/lorcanito/store/utils";
-import { PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
+import { moveCardToZone, PLAYER_ACTIONS } from "@/lib/lorcanito/store/actions";
 import { Card } from "../ui/card";
 import CardSelect from "./card-select";
 import useGameInitializer from "./initializer";
-
 
 type DropZoneProps = {
     id: string;
@@ -95,11 +94,11 @@ export default function Board() {
 
         if (sourceZone && targetZone && sourceZone !== targetZone) {
             // Move card to a new zone
-            // moveCardToZone(
-            //     sourceZone as "inkwell" | "hand" | "field",
-            //     targetZone as "inkwell" | "hand" | "field",
-            //     cardToMove
-            // );
+            moveCardToZone(
+                sourceZone as "inkwell" | "hand" | "field",
+                targetZone as "inkwell" | "hand" | "field",
+                cardToMove
+            );
         } else if (sourceZone) {
             // Card was dropped back into the same zone
             console.info("Card was dropped back into the same zone");
@@ -206,6 +205,7 @@ const Options = () => {
                     {availableActions?.map(action => (
                         <Button
                             key={action.type}
+                            onPointerDown={e => e.preventDefault()} // prevent keyboard focus
                             onClick={PLAYER_ACTIONS[action.type]}
                         >
                             {action.type}
@@ -219,21 +219,3 @@ const Options = () => {
         </Card>
     );
 };
-
-// function moveCardToZone(
-//     sourceZone: "inkwell" | "hand" | "field",
-//     targetZone: "inkwell" | "hand" | "field",
-//     card: CardType
-// ) {
-//     switch (targetZone) {
-//         case "hand":
-//             addCardToHand(card, sourceZone);
-//             break;
-//         case "field":
-//             playCard(card);
-//             break;
-//         case "inkwell":
-//             addCardToInkwell(card);
-//             break;
-//     }
-// }

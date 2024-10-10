@@ -377,3 +377,30 @@ export function damageCard(
 
     return { ...state };
 }
+
+export function moveCardToZone(
+    sourceZone: "inkwell" | "hand" | "field",
+    targetZone: "inkwell" | "hand" | "field",
+    card: Card
+) {
+    useGameStore.setState(
+        state => {
+            const player = state.players.find(p =>
+                p[sourceZone].some(c => c.id === card.id)
+            );
+            if (!player) return state;
+
+            state.players = state.players.map(p => {
+                if (p.id === player.id) {
+                    p[sourceZone] = p[sourceZone].filter(c => c.id !== card.id);
+                    p[targetZone].push({ ...card, zone: targetZone });
+                }
+                return p;
+            });
+
+            return { ...state };
+        },
+        false,
+        { type: `MOVE CARD TO ZONE`, sourceZone, targetZone, card }
+    );
+}

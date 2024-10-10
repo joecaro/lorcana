@@ -48,7 +48,7 @@ function generatePlayerState(playerId: string, bot: boolean = false): Player {
     return {
         id: playerId,
         hand: [], // Initially empty hand
-        deck: [], // Initially empty deck
+        deck: shuffle(createCards(cards, playerId)), // Shuffled deck
         inkwell: [],
         discard: [],
         field: [],
@@ -66,7 +66,7 @@ function generatePlayerState(playerId: string, bot: boolean = false): Player {
 export function initializePlayerDeck(playerId: string) {
     const deck = shuffle(createCards(cards, playerId));
     return {
-        hand: deck.slice(0, 5).map(c => ({ ...c, zone: 'hand' })),
+        hand: deck.slice(0, 5).map(c => ({ ...c, zone: "hand" })),
         deck: deck.slice(5),
     };
 }
