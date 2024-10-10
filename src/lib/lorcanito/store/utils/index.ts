@@ -138,7 +138,6 @@ export function checkTriggers(
 export function applyModifiers(
     card: Card,
     actionType: Action | "challenged",
-    baseStat: number,
     statType: "strength" | "willpower" | "cost"
 ): number {
     const currentTurn = useGameStore.getState().turn; // Get the current turn from the game state
@@ -176,9 +175,6 @@ export function applyModifiers(
 
     // Calculate the final stat value considering the valid modifiers
     return applicableModifiers
-        ? applicableModifiers.reduce(
-              (total, mod) => total + mod.value,
-              baseStat
-          )
-        : baseStat;
+        ? applicableModifiers.reduce((total, mod) => total + mod.value, 0)
+        : 0;
 }

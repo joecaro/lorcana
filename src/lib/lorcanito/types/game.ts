@@ -55,6 +55,7 @@ export type BaseCard = {
     url: string;
     name: string;
     title: string;
+    foilUrl?: string;
     text: string[];
     characteristics: string[];
     flavour?: string;

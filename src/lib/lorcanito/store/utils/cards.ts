@@ -172,96 +172,121 @@ export function generateActions(
                 type: "challenge",
                 options: potentialTargets,
                 callback: targetCard => {
-                    useGameStore.setState(state => {
-                        if (
-                            typeof targetCard !== "object" ||
-                            !("willpower" in targetCard)
-                        ) {
-                            console.error("No valid target for challenge.");
-                            return state;
-                        }
+                    useGameStore.setState(
+                        state => {
+                            if (
+                                typeof targetCard !== "object" ||
+                                !("willpower" in targetCard)
+                            ) {
+                                console.error("No valid target for challenge.");
+                                return state;
+                            }
 
-                        state = checkTriggers(state, "challenge", targetCard);
+                            state = checkTriggers(
+                                state,
+                                "challenge",
+                                targetCard
+                            );
 
-                        // Apply modifiers to the strength and willpower stats before calculating damage
-                        thisCard.strengthModifier = applyModifiers(
-                            thisCard,
-                            "challenge",
-                            thisCard.strengthModifier,
-                            "strength"
-                        );
-                        thisCard.willpowerModifier = applyModifiers(
-                            thisCard,
-                            "challenge",
-                            thisCard.willpowerModifier,
-                            "willpower"
-                        );
+                            // Apply modifiers to the strength and willpower stats before calculating damage
+                            const thisCardStrengthModifier = applyModifiers(
+                                thisCard,
+                                "challenge",
+                                "strength"
+                            );
+                            const thisCardWillpowerModifier = applyModifiers(
+                                thisCard,
+                                "challenge",
+                                "willpower"
+                            );
 
-                        targetCard.willpowerModifier = applyModifiers(
-                            targetCard,
-                            "challenged",
-                            targetCard.willpowerModifier,
-                            "willpower"
-                        );
-                        targetCard.strengthModifier = applyModifiers(
-                            targetCard,
-                            "challenged",
-                            targetCard.strengthModifier,
-                            "strength"
-                        );
+                            const targetCardWillpowerModifier = applyModifiers(
+                                targetCard,
+                                "challenged",
+                                "willpower"
+                            );
+                            const targetCardStrengthModifier = applyModifiers(
+                                targetCard,
+                                "challenged",
+                                "strength"
+                            );
 
-                        // Log the combat result
-                        state.debugLogs.push({
-                            type: "Combat",
-                            attacker: thisCard,
-                            defender: targetCard,
-                        });
+                            // Calculate the damage dealt
+                            const damageDealt =
+                                targetCardStrengthModifier -
+                                (thisCard.willpower +
+                                    thisCardWillpowerModifier);
 
-                        thisCard.exerted = true;
+                            // Calculate the damage received
+                            const damageReceived =
+                                thisCardStrengthModifier -
+                                (targetCard.willpower +
+                                    targetCardWillpowerModifier);
 
-                        // Remove defeated cards
-                        if (
-                            targetCard.strength + targetCard.strengthModifier <=
-                            0
-                        ) {
-                            state.players = moveToDiscard(state, targetCard);
-                        }
-                        if (
-                            thisCard.strength + thisCard.strengthModifier <=
-                            0
-                        ) {
-                            state.players = moveToDiscard(state, thisCard);
-                        }
+                            // Apply the damage to the cards
+                            thisCard.strengthModifier += damageReceived;
+                            targetCard.strengthModifier += damageDealt;
 
-                        state.inputStage = null;
+                            // Log the combat result
+                            state.debugLogs.push({
+                                type: "Combat",
+                                attacker: thisCard,
+                                defender: targetCard,
+                            });
+                            console.log("Combat", damageReceived, damageDealt);
 
-                        return { ...state };
-                    });
+                            thisCard.exerted = true;
+
+                            // Remove defeated cards
+                            if (
+                                targetCard.strength +
+                                    targetCard.strengthModifier <=
+                                0
+                            ) {
+                                state.players = moveToDiscard(
+                                    state,
+                                    targetCard
+                                );
+                            }
+                            if (
+                                thisCard.strength + thisCard.strengthModifier <=
+                                0
+                            ) {
+                                state.players = moveToDiscard(state, thisCard);
+                            }
+
+                            state.inputStage = null;
+
+                            return { ...state };
+                        },
+                        false,
+                        { type: "challenge", card: thisCard }
+                    );
                 },
             };
             return gameState;
         },
-        discard: (gameState: GameState, thisCard: Card) => {
+        discard: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
-        ability: (gameState: GameState, thisCard: Card) => {
+        ability: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
-        draw: (gameState: GameState, thisCard: Card) => {
+        draw: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
-        end_game: (gameState: GameState, thisCard: Card) => {
+        end_game: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
-        pass: (gameState: GameState, thisCard: Card) => {
+        pass: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
-        cancel: (gameState: GameState, thisCard: Card) => {
+        cancel: (gameState: GameState) => {
             gameState.inputStage = null;
             return gameState;
         },
@@ -279,47 +304,43 @@ export function generateTriggers(
     > = {}
 ): Card["triggers"] {
     return {
-        play: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        play: (gameState: GameState) => {
             return gameState;
         },
-        quest: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        quest: (gameState: GameState) => {
             return gameState;
         },
-        challenge: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        challenge: (gameState: GameState) => {
             return gameState;
         },
-        discard: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        discard: (gameState: GameState) => {
             return gameState;
         },
-        ink: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        ink: (gameState: GameState) => {
             return gameState;
         },
-        ability: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        ability: (gameState: GameState) => {
             return gameState;
         },
-        draw: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        draw: (gameState: GameState) => {
             return gameState;
         },
-        end_game: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        end_game: (gameState: GameState) => {
             return gameState;
         },
-        pass: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        pass: (gameState: GameState) => {
             return gameState;
         },
-        cancel: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        cancel: (gameState: GameState) => {
             return gameState;
         },
-        start_phase: (
-            gameState: GameState,
-            thisCard: Card,
-            thatCard?: Card
-        ) => {
+        start_phase: (gameState: GameState) => {
             return gameState;
         },
-        main_phase: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        main_phase: (gameState: GameState) => {
             return gameState;
         },
-        end_phase: (gameState: GameState, thisCard: Card, thatCard?: Card) => {
+        end_phase: (gameState: GameState) => {
             return gameState;
         },
         ...overrides,

@@ -3,7 +3,7 @@ import {
     generateActions,
     generateTriggers,
 } from "./utils/cards";
-import { BaseCard, Card, GameState } from "../types/game";
+import { BaseCard } from "../types/game";
 import { drawCard, findHealableCards } from "./utils";
 import useGameStore from ".";
 import { moveToDiscard } from "./actions";
@@ -30,7 +30,7 @@ const cards: BaseCard[] = [
         lore: 2,
         actionChecks: generateActionChecks({}),
         actions: generateActions({
-            ability: (gameState: GameState, thisCard: Card) => {
+            ability: gameState => {
                 const healabeCards = findHealableCards(gameState);
                 if (healabeCards.length === 0) return gameState;
                 gameState.inputStage = {
@@ -93,6 +93,7 @@ const cards: BaseCard[] = [
         url: "/cards/storm-enchanter.webp",
         name: "STORM ENCHANTER",
         title: "Master of the Elements",
+        foilUrl: "/foil/storm-enchanter.jpg",
         characteristics: ["storyborn", "sorcerer"],
         text: [
             "**Stormborn** - This character gains +1 willpower when challenging.",
@@ -145,6 +146,12 @@ const cards: BaseCard[] = [
         lore: 0, // Actions generally do not contribute to lore directly
         actionChecks: generateActionChecks({
             ability: (gameState, thisCard) => {
+                if (thisCard.zone !== "field" || thisCard.exerted) {
+                    console.log(
+                        "Card must be in play to use ability and be ready"
+                    );
+                    return null;
+                }
                 if (
                     gameState.players[gameState.currentPlayer].field.length <
                         2 ||
@@ -162,7 +169,7 @@ const cards: BaseCard[] = [
             },
         }),
         actions: generateActions({
-            ability: (gameState, thisCard) => {
+            ability: gameState => {
                 gameState.inputStage = {
                     type: "ability",
                     options: gameState.players[gameState.currentPlayer].field,
@@ -431,13 +438,13 @@ const cards: BaseCard[] = [
         willpower: 0, // Item cards typically do not have inherent willpower
         lore: 0, // Items generally do not contribute to lore directly
         actionChecks: generateActionChecks({
-            ability: (gameState, thisCard) => {
+            ability: () => {
                 // TODO: IMPLEMENT TEMP BUFFS
                 return null;
             },
         }),
         actions: generateActions({
-            ability: (gameState, thisCard) => {
+            ability: gameState => {
                 gameState.inputStage = {
                     type: "ability",
                     options: gameState.players[gameState.currentPlayer].field,
@@ -663,7 +670,7 @@ const cards: BaseCard[] = [
         lore: 2,
         actionChecks: generateActionChecks({}),
         actions: generateActions({
-            ability: (gameState, thisCard) => {
+            ability: gameState => {
                 const options = gameState.players[
                     (gameState.currentPlayer + 1) % 2
                 ].field.filter(card => card.type === "item");
@@ -818,7 +825,7 @@ const cards: BaseCard[] = [
         lore: 0,
         actionChecks: generateActionChecks({}),
         actions: generateActions({
-            ability: (gameState, thisCard) => {
+            ability: gameState => {
                 gameState.inputStage = {
                     type: "ability",
                     options: gameState.players[gameState.currentPlayer].field,

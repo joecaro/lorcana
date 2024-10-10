@@ -7,6 +7,8 @@ import { MagicCard } from "../card-maker";
 import { cn } from "@/lib/utils";
 import useGameStore from "@/lib/lorcanito/store";
 
+import "./card.css";
+
 const MOVE_THRESHOLD = 30; // Pixel threshold for movement detection
 
 const movedPastThreshold = (transform: { x: number; y: number }): boolean =>
@@ -139,6 +141,11 @@ const CardComp: React.FC<{
         "--pointer-y": `${shinePosition.y}%`,
         "--rotate-x": `${rotation.rotateX}deg`,
         "--rotate-y": `${rotation.rotateY}deg`,
+        "--pointer-from-center": `${
+            (shinePosition.x / 100 + shinePosition.y / 100) / 2
+        }`,
+        "--space": "5%",
+        "--foil-url": card.foilUrl,
         transform: `rotateX(${rotation.rotateX}deg) rotateY(${rotation.rotateY}deg)`,
         touchAction: "none",
         width: "7rem",
@@ -147,60 +154,6 @@ const CardComp: React.FC<{
         borderBottom: square ? "5px solid black" : "1px solid black",
         boxShadow: `0 0 0 1px ${isOption(card) ? "green" : "#fff"}`,
         ...motionStyle,
-    };
-
-    // Shine layer styles (using the VMAX effect)
-    const shineStyle = {
-        position: "absolute" as const,
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        transform: "translateZ(1px)",
-        zIndex: 2,
-        backgroundImage: `
-			url("https://res.cloudinary.com/joecarothers/image/upload/v1727843332/misc/Projects/lorcana/foil_ilhiay.png"),
-			repeating-linear-gradient(-33deg,
-				hsl(2, 70%, 47%) 6%, 
-				hsl(228, 60%, 64%) 12%, 
-				hsl(176, 55%, 39%) 18%, 
-				hsl(123, 68%, 35%) 24%, 
-				hsl(283, 75%, 57%) 30%),
-			radial-gradient(
-				farthest-corner circle at ${shinePosition.x}% ${shinePosition.y}%,
-				hsla(189, 76%, 77%, 0.6) 0%, 
-				hsla(147, 59%, 77%, 0.6) 25%, 
-				hsla(271, 55%, 69%, 0.6) 50%, 
-				hsla(355, 56%, 72%, 0.6) 75%
-			)`,
-        backgroundBlendMode: "color-burn, soft-light",
-        backgroundSize: "cover, 1100% 1100%, 600% 600%",
-        filter: `brightness(2) contrast(2) saturate(1)`,
-        opacity: `.3`,
-        mixBlendMode: "color-dodge" as const,
-        mask: `url(https://res.cloudinary.com/joecarothers/image/upload/v1727845350/misc/Projects/lorcana/mask_u5rkgf.png)`,
-        maskSize: "100% 100%",
-        maskPosition: "center",
-        maskRepeat: "no-repeat",
-    };
-
-    // Glare layer styles
-    const glareStyle = {
-        position: "absolute" as const,
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        transform: "translateZ(1.4px)",
-        zIndex: 3,
-        backgroundImage: `radial-gradient(farthest-corner circle at ${shinePosition.x}% ${shinePosition.y}%, hsla(0, 0%, 100%, 1) 0%, hsla(0, 0%, 100%, 1) 5%, hsl(0, 0%, 0%) 70%)`,
-        filter: "brightness(4) contrast(1)",
-        mixBlendMode: "overlay" as const,
-        opacity: `.1`,
-        // mask: `url(https://res.cloudinary.com/joecarothers/image/upload/v1727844835/misc/Projects/lorcana/mask_a6p4bj.png)`,
-        // maskSize: "100% 100%", // Adjusts the size to cover the entire element
-        // maskPosition: "center", // Aligns the mask to the center
-        // maskRepeat: "no-repeat", // Ensures the mask is not repeated
     };
 
     return (
@@ -225,20 +178,22 @@ const CardComp: React.FC<{
             onMouseLeave={handleMouseLeave} // Reset rotation on mouse leave
             style={cardStyle}
             whileHover={{
-                scale: 1.7,
+                scale: 2.2,
                 height: "10rem",
                 zIndex: 10,
                 rotateX: rotation.rotateX,
                 rotateY: rotation.rotateY,
             }}
-            whileTap={{ scale: 1.6 }}
+            whileTap={{ scale: 1.8 }}
             transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
         >
-            {/* Shine Layer */}
-            {card.isFoil && <div style={shineStyle}></div>}
+            <div className='diffuse-layer' />
 
-            {/* Glare Layer */}
-            {card.isFoil && <div style={glareStyle}></div>}
+            <div className='foil-layer' />
+
+            <div className='holo-layer' />
+
+            <div className='glare-layer' />
 
             <CardUI card={card} hideCardDetails={hideCardDetails} />
             {inputStage && isOption(card) && (

@@ -1,40 +1,16 @@
 "use client";
-import { MagicCard } from "@/components/card-maker";
 import CardComp from "@/components/lorcanito/card";
 import React from "react";
 
 const MyApp = () => {
     return (
-        <div className='p-10'>
-            <MagicCard
-                cardColor='amber'
-                rarity='rare'
-                name='ANCIENT PROTECTOR'
-                title='Beloved Hero'
-                strength={6}
-                strengthModifier={-2}
-                willpower={5}
-                willpowerModifier={1}
-                descriptions={[
-                    "**Bodygaurd** (this character may enter play exerted and opposing character who challenges one of your characters must choose one with Bodyguard if able.)",
-                    "**Resist** +1 (damage deal to this character is reduced by 1.)",
-                ]}
-                artUrl='/herc.jpeg'
-                type='Storyborn - Hero'
-                footerLeftText={[
-                    "OGW &#x2022; EN Wesley Burt",
-                    "180/204 - EN - 4",
-                ]}
-                footerRightText={["Disney Lorcana &#169;Disney"]}
-                lore={2}
-                cardCost='4'
-            />
+        <div className='w-screen h-screen flex justify-center items-center [perspective:800px]'>
             <CardComp
                 // @ts-expect-error - this is a test card
                 card={{
                     implemented: true,
                     id: "1",
-                    url: "/cards/storm-enchanter.webp",
+                    url: "/cards/ancient-protector.webp",
                     name: "STORM ENCHANTER",
                     title: "Master of the Elements",
                     characteristics: ["storyborn", "sorcerer"],
@@ -57,6 +33,8 @@ const MyApp = () => {
                     number: 1,
                     set: "TFC",
                     rarity: "uncommon",
+                    isFoil: true,
+                    // foilUrl: "/foil/storm-enchanter.jpg",
                 }}
             />
         </div>
