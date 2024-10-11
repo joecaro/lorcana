@@ -19,6 +19,7 @@ export type GameState = {
         callback: (choice: string | Card | Card[]) => void;
     } | null;
     turnFlags: Partial<Record<Action, boolean>>;
+    initializePlayerDecks: () => void;
 };
 
 export type Player = {
