@@ -54,6 +54,7 @@ The UI components, including the 3D card animations and holo effects, are locate
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
 ## Acknowledgements
+
 Inspired by the game Lorcana.
 Thanks to the open-source community for various libraries and tools used in this project.
 

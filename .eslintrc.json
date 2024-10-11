@@ -1,4 +1,7 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-empty-object-type": "off"
+  },
   "ignorePatterns": ["node_modules", "local-dev"]
 }
