@@ -1,5 +1,6 @@
 import {
     baseAbilityCheck,
+    createChallengerText,
     exertPlayerCard,
     generateActionChecks,
     generateActions,
@@ -13,6 +14,12 @@ import { BaseCard } from "../types/game";
 import { drawCard, findHealableCards } from "./utils";
 import useGameStore from ".";
 import { damageCard, moveToDiscard } from "./actions";
+import AmberCards from "./cards/amber";
+import AmethystCards from "./cards/amethyst";
+import EmeraldCards from "./cards/emerald";
+import RubyCards from "./cards/ruby";
+import SteelCards from "./cards/steel";
+import SapphireCards from "./cards/sapphire";
 
 const cards: BaseCard[] = [
     {
@@ -127,6 +134,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -161,6 +169,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -396,6 +405,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -450,6 +460,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -549,6 +560,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -563,9 +575,7 @@ const cards: BaseCard[] = [
         name: "KNIGHT OF VALOR",
         title: "Noble Warrior",
         characteristics: ["storyborn", "knight"],
-        text: [
-            "~~Valor~~ - Charcter gains **Challenger +1** (Challenger willpower increases by 1 when challenging)",
-        ],
+        text: [`~~Valor~~ - Charcter gains ${createChallengerText(1)}`],
         type: "character",
         flavour:
             "The Knight of Valor is a noble warrior, always ready to defend the innocent.",
@@ -582,6 +592,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -712,6 +723,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -767,6 +779,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -808,6 +821,7 @@ const cards: BaseCard[] = [
             evasive: { active: true },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -878,6 +892,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1028,6 +1043,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1079,6 +1095,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1197,6 +1214,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1244,6 +1262,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1310,6 +1329,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1344,6 +1364,7 @@ const cards: BaseCard[] = [
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         illustrator: "GPT4o",
         language: "EN",
@@ -1363,4 +1384,4 @@ const cards: BaseCard[] = [
     },
 ];
 
-export default cards;
+export default [...cards, ...AmberCards, ...AmethystCards, ...EmeraldCards, ...RubyCards, ...SapphireCards, ...SteelCards ];

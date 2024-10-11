@@ -40,11 +40,12 @@ export type Player = {
 };
 
 export type Modifier = {
-    type: Action;
+    type: Action | "challenged";
     stat: "strength" | "willpower" | "cost";
     value: number;
     duration:
         | "until_end_of_turn"
+        | "until_end_of_next_turn"
         | "until_action"
         | "until_damage_received"
         | "permanent";
@@ -53,7 +54,7 @@ export type Modifier = {
 };
 
 // TODO: implement resist and challenger
-export type StaticAbility = "evasive" | "resist" | "challenger";
+export type StaticAbility = "evasive" | "resist" | "challenger" | "sing";
 
 export type BaseCard = {
     implemented: boolean;
@@ -87,7 +88,7 @@ export type BaseCard = {
     >;
     triggers: Record<
         Event,
-        (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
+        (gameState: GameState, thisCard: Card, thatCard?: Card, targetCard?: Card) => GameState
     >;
     staticAbilities: Record<StaticAbility, { active: boolean; value?: number }>;
 };
@@ -115,7 +116,8 @@ export type Action =
     | "draw"
     | "end_game"
     | "pass"
-    | "cancel";
+    | "cancel"
+    | "sing";
 
 export type Event = Action | "start_phase" | "main_phase" | "end_phase";
 

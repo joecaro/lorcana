@@ -144,6 +144,7 @@ const GameCard: React.FC<CardProps> = props => {
                     {props.inkwell && (
                         <Image
                             layout='fill'
+                            sizes="18px"
                             className='absolute top-0 left-0 right-0 bottom-0'
                             src='/inkable.png'
                             alt='inkable'
@@ -237,6 +238,7 @@ const GameCard: React.FC<CardProps> = props => {
                     <div className={"h-[120%] absolute left-0.5 -top-[10%]"}>
                         <Image
                             layout='fill'
+                            sizes="20px"
                             className='h-full object-contain'
                             src={colorIcons[props.cardColor]}
                             alt='expansion-icon'
@@ -334,6 +336,7 @@ const GameCard: React.FC<CardProps> = props => {
                 <div className='w-2 justify-self-center relative'>
                     <Image
                         layout='fill'
+                        sizes="20px"    
                         className='object-contain w-full h-full'
                         src={rarityIcons[props.rarity]}
                         alt={props.rarity}

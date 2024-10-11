@@ -58,6 +58,16 @@ export function generateActionChecks(
             }
             return { type: "ink", card: thisCard };
         },
+        sing: (_: GameState, thisCard: Card) => {
+            if (
+                thisCard.zone !== "hand" ||
+                !thisCard.staticAbilities.sing.active
+            ) {
+                return null;
+            }
+
+            return { type: "sing", card: thisCard };
+        },
         ability: () => {
             return null;
         },
@@ -138,6 +148,11 @@ export function generateActions(
                 card: thisCard,
                 player: gameState.players[gameState.currentPlayer],
             });
+
+            return gameState;
+        },
+        sing: (gameState: GameState) => {
+            gameState.inputStage = null;
 
             return gameState;
         },
@@ -289,7 +304,12 @@ export function generateTriggers(
     overrides: Partial<
         Record<
             Event,
-            (gameState: GameState, thisCard: Card, thatCard?: Card) => GameState
+            (
+                gameState: GameState,
+                thisCard: Card,
+                thatCard?: Card,
+                target?: Card
+            ) => GameState
         >
     > = {}
 ): Card["triggers"] {
@@ -307,6 +327,9 @@ export function generateTriggers(
             return gameState;
         },
         ink: (gameState: GameState) => {
+            return gameState;
+        },
+        sing: (gameState: GameState) => {
             return gameState;
         },
         ability: (gameState: GameState) => {
@@ -337,6 +360,16 @@ export function generateTriggers(
     };
 }
 
+export function createSingerText(num: number) {
+    return `**Singer ${num}**: This character counts as cost ${num} to sing songs.`;
+}
+
+export function createChallengerText(num: number) {
+    return `**Challenger +${num}**: (Character willpower increases by 1 when challenging).`;
+}
+
+export const evasiveText = `**Evasive**: This character cannot be challenged.`;
+
 export function create(card: BaseCard, ownerId: string): Card {
     return {
         ...card,
@@ -355,9 +388,42 @@ export function create(card: BaseCard, ownerId: string): Card {
 }
 
 export function createCards(cards: BaseCard[], ownerId: string): Card[] {
-    return cards.map(c => create(c, ownerId));
+    return cards
+        .reduce((acc: BaseCard[], card) => {
+            // Set the probability factor based on the rarity of the card
+            const rarityFactor = getRarityFactor(card.rarity);
+            
+            // Generate a random number of copies, weighted toward more copies for lower rarity
+            const numCopies = Math.min(
+                Math.max(
+                    1,
+                    Math.floor(Math.random() ** (1 / rarityFactor) * 4)
+                ),
+                4
+            );
+
+            return [...acc, ...Array(numCopies).fill(card)];
+        }, [])
+        .map(c => create(c, ownerId));
 }
 
+// Helper function to determine the rarity factor
+function getRarityFactor(rarity: string): number {
+    switch (rarity) {
+        case "common":
+            return 1.25;
+        case "uncommon":
+            return 1.5;
+        case "rare":
+            return 2;
+        case "super rare":
+            return 2.5;
+        case "legendary":
+            return 3;
+        default:
+            return 1.25; // Default factor for undefined rarities
+    }
+}
 // check/action utils
 export function getAttackerField(gameState: GameState): Card[] {
     return gameState.players[gameState.currentPlayer].field;
@@ -405,6 +471,14 @@ export function getAttackerInkwell(gameState: GameState): Card[] {
 
 export function getDefenderInkwell(gameState: GameState): Card[] {
     return gameState.players[gameState.currentPlayer === 0 ? 1 : 0].inkwell;
+}
+
+export function getAttackerDiscard(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer].discard;
+}
+
+export function getDefenderDiscard(gameState: GameState): Card[] {
+    return gameState.players[gameState.currentPlayer === 0 ? 1 : 0].discard;
 }
 
 export function getXCardFromPlayerDeck(

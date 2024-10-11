@@ -10,6 +10,7 @@ export const PLAYER_ACTIONS: Record<Action, (...ags: any) => void> = {
     quest: chooseQuest,
     challenge: chooseChallenge,
     discard: () => console.log("Discarding"),
+    sing: chooseSing,
     ink: chooseInkCard,
     ability: chooseAbility,
     end_game: () => console.log("Ending game"),
@@ -212,6 +213,10 @@ function chooseAbility() {
         false,
         { type: `INITIATE ABILITY CARD` }
     );
+}
+
+function chooseSing() {
+    // TODO: Implement
 }
 
 function chooseInkCard() {

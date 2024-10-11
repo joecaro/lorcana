@@ -160,18 +160,20 @@ export function applyModifiers(
     actionType: Action | "challenged",
     statType: "strength" | "willpower" | "cost"
 ): number {
-    const currentTurn = useGameStore.getState().turn; // Get the current turn from the game state
+    const currentTurn = useGameStore.getState().turn;
 
     const applicableModifiers = card.modifiers?.filter(mod => {
         // Check if the modifier is still valid based on its duration
         const isValid = (() => {
             switch (mod.duration) {
                 case "permanent":
-                    return true; // Permanent modifiers are always valid
+                    return true;
                 case "until_end_of_turn":
-                    return mod.turnApplied === currentTurn; // Valid only during the turn it was applied
+                    return mod.turnApplied === currentTurn;
+                case "until_end_of_next_turn":
+                    return mod.turnApplied <= currentTurn - 1;
                 case "until_damage_received":
-                    return !mod.hasTriggered; // Valid until the card takes damage
+                    return !mod.hasTriggered;
                 default:
                     return false; // If the duration is unknown, consider it expired
             }

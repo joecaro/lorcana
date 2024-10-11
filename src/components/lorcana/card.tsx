@@ -161,9 +161,6 @@ const CardComp: React.FC<{
           }
         : {};
 
-        console.log("card", card);
-        
-
     const cardStyle = {
         "--pointer-x": `${shinePosition.x}%`,
         "--pointer-y": `${shinePosition.y}%`,

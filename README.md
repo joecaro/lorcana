@@ -62,3 +62,5 @@ Thanks to the open-source community for various libraries and tools used in this
 - [shadcn ui](https://github.com/shadcn-ui/ui)
 
 Enjoy building and playing Lorcana!
+
+_THIS IS NOT AFFILIATED WITH DISNEY OR RAVENBURGER. THIS IS A PERSONAL PROJECT WITH NO COMMERCIAL USE_
