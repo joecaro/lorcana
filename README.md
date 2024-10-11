@@ -53,11 +53,11 @@ The UI components, including the 3D card animations and holo effects, are locate
 
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
-##Acknowledgements
+## Acknowledgements
 Inspired by the game Lorcana.
 Thanks to the open-source community for various libraries and tools used in this project.
 
 - [react-mtg-card](https://github.com/germanyn/reactjs-mtg-card) for early designs and inspiration for the card maker
 - [shadcn ui](https://github.com/shadcn-ui/ui)
 
-Enjoy building and playing Lorcanito!
+Enjoy building and playing Lorcana!

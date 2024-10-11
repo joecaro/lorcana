@@ -86,7 +86,7 @@ const config: Config = {
     			sm: 'calc(var(--radius) - 4px)'
     		},
     		fontFamily: {
-    			sans: ['Proxima Nova"', ...theme.fontFamily.sans],
+    			sans: ['Proxima Nova', ...theme.fontFamily.sans],
     			manrope: ["var(--font-manrope)"]
     		}
     	}
