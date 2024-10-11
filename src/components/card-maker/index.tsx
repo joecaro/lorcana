@@ -5,6 +5,7 @@ import { colorIcons, formatter, rarityIcons } from "./utils";
 import { Shield, Triangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Sun from "../svg/Sun";
+import Image from "next/image";
 
 export interface CardProps {
     name: string;
@@ -141,7 +142,8 @@ const GameCard: React.FC<CardProps> = props => {
                 >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {props.inkwell && (
-                        <img
+                        <Image
+                            layout='fill'
                             className='absolute top-0 left-0 right-0 bottom-0'
                             src='/inkable.png'
                             alt='inkable'
@@ -154,7 +156,7 @@ const GameCard: React.FC<CardProps> = props => {
                 <div className='h-[80px] bg-gray-50'>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                        className='h-full w-full object-top object-cover'
+                        className='h-full w-full object-center object-cover'
                         src={
                             props.hideCardDetails
                                 ? "/card-back.jpg"
@@ -233,7 +235,8 @@ const GameCard: React.FC<CardProps> = props => {
                     )}
                 >
                     <div className={"h-[120%] absolute left-0.5 -top-[10%]"}>
-                        <img
+                        <Image
+                            layout='fill'
                             className='h-full object-contain'
                             src={colorIcons[props.cardColor]}
                             alt='expansion-icon'
@@ -328,8 +331,9 @@ const GameCard: React.FC<CardProps> = props => {
                     ))}
                 </div>
 
-                <div className='w-2 justify-self-center'>
-                    <img
+                <div className='w-2 justify-self-center relative'>
+                    <Image
+                        layout='fill'
                         className='object-contain w-full h-full'
                         src={rarityIcons[props.rarity]}
                         alt={props.rarity}

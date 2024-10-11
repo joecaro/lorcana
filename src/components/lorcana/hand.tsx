@@ -2,7 +2,6 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { motion } from "framer-motion";
-import { Card } from "@/lib/lorcana/types/game";
 import CardComp from "./card";
 import useGameStore from "@/lib/lorcana/store";
 

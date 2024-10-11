@@ -17,7 +17,7 @@ import { damageCard, moveToDiscard } from "./actions";
 const cards: BaseCard[] = [
     {
         implemented: true,
-        url: "/cards/rainey.webp",
+        url: "/cards/rainey.jpg",
         name: "RAINEY",
         title: "Gentle Fetcher",
         characteristics: ["princess", "good girl"],
@@ -137,7 +137,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/storm-enchanter.webp",
+        url: "/cards/storm-enchanter.jpg",
         name: "STORM ENCHANTER",
         title: "Master of the Elements",
         foilUrl: "/foil/storm-enchanter.jpg",
@@ -180,7 +180,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/dark-ritual.webp",
+        url: "/cards/dark-ritual.jpg",
         name: "DARK RITUAL",
         title: "Sinister Spell",
         characteristics: ["arcane", "dark magic"],
@@ -406,7 +406,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/celestial-beacon.webp",
+        url: "/cards/celestial-beacon.jpg",
         name: "CELESTIAL BEACON",
         title: "Radiant Artifact",
         characteristics: ["artifact", "celestial"],
@@ -460,7 +460,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/elven-scout.webp",
+        url: "/cards/elven-scout.jpg",
         name: "ELVEN SCOUT",
         title: "Nimble Tracker",
         characteristics: ["storyborn", "scout"],
@@ -559,7 +559,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/knight-of-valor.webp",
+        url: "/cards/knight-of-valor.jpg",
         name: "KNIGHT OF VALOR",
         title: "Noble Warrior",
         characteristics: ["storyborn", "knight"],
@@ -601,7 +601,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/blade-of-fury.webp",
+        url: "/cards/blade-of-fury.jpg",
         name: "BLADE OF FURY",
         title: "Enchanted Weapon",
         characteristics: ["enchanted", "weapon"],
@@ -722,7 +722,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/ancient-protector.webp",
+        url: "/cards/ancient-protector.jpg",
         name: "ANCIENT PROTECTOR",
         title: "Guardian of the Old Realms",
         text: [
@@ -777,7 +777,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/arcane-aprentice.webp",
+        url: "/cards/arcane-aprentice.jpg",
         name: "ARCANE APRENTICE",
         title: "Mystic Mage",
         characteristics: ["storyborn", "sorcerer"],
@@ -818,7 +818,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/flamecaster.webp",
+        url: "/cards/flamecaster.jpg",
         name: "FLAMECASTER",
         title: "Fiery Fiend",
         characteristics: ["storyborn", "sorcerer"],
@@ -888,7 +888,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/beacon.webp",
+        url: "/cards/beacon.jpg",
         name: "BEACON",
         title: "Guiding Light",
         characteristics: ["storyborn", "puppy"],
@@ -1038,7 +1038,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/frost-warden.webp",
+        url: "/cards/frost-warden.jpg",
         name: "FROST WARDEN",
         title: "Guardian of the Frozen Realm",
         characteristics: ["storyborn", "warden"],
@@ -1089,7 +1089,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/sunforged-armor.webp",
+        url: "/cards/sunforged-armor.jpg",
         name: "SUNFORGED ARMOR",
         title: "Radiant Shield",
         characteristics: ["artifact", "armor"],
@@ -1207,7 +1207,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/cindershadow-sorcerer.webp",
+        url: "/cards/cindershadow-sorcerer.jpg",
         name: "CINDERSHADOW SORCERER",
         title: "Wielder of Flames",
         characteristics: ["storyborn", "sorcerer"],
@@ -1254,7 +1254,7 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/mystic-elder.webp",
+        url: "/cards/mystic-elder.jpg",
         name: "MYSTIC ELDER",
         title: "Sage of the Ages",
         characteristics: ["storyborn", "mage"],
@@ -1320,7 +1320,8 @@ const cards: BaseCard[] = [
     },
     {
         implemented: true,
-        url: "/cards/vinebound-titan.webp",
+        url: "/cards/vinebound-titan.jpg",
+        foilUrl: "/foil/vinebound-titan.jpg",
         name: "VINEBOUND TITAN",
         title: "Earthbound Juggernaut",
         characteristics: ["storyborn", "giant"],

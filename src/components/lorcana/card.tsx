@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { mix, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useDraggable } from "@dnd-kit/core";
 import { Card } from "@/lib/lorcana/types/game";
 import { GameCard } from "../card-maker";
@@ -110,22 +110,31 @@ const CardComp: React.FC<{
         startPos.current = null;
     };
 
-    const handleMouseMove = (e: React.MouseEvent) => {
+    const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         if (!cardRef.current) return;
 
         const rect = cardRef.current.getBoundingClientRect();
         const cardWidth = rect.width;
         const cardHeight = rect.height;
+        let mouseX, mouseY;
+
+        // Check if the event is a touch event
+        if ("touches" in e) {
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
+        } else {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        }
+
         const centerX = rect.left + cardWidth / 2;
         const centerY = rect.top + cardHeight / 2;
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
 
-        // Calculate how far the mouse is from the center (max 30 degrees)
+        // Calculate how far the pointer is from the center (max 30 degrees)
         const rotateY = ((mouseX - centerX) / cardWidth) * 30; // Rotate along the Y axis
         const rotateX = ((centerY - mouseY) / cardHeight) * 30; // Rotate along the X axis
 
-        // Update the shine position based on the mouse position
+        // Update the shine position based on the pointer position
         const pointerX = ((mouseX - rect.left) / cardWidth) * 100;
         const pointerY = ((mouseY - rect.top) / cardHeight) * 100;
 
@@ -144,13 +153,16 @@ const CardComp: React.FC<{
         ? {
               x: unSnap ? transform.x : 0,
               y: unSnap ? transform.y : 0,
-              rotation: unSnap ? mix(transform.x / 100, 0, 360) : "initial",
+              rotation: "initial",
               zIndex: isDragging ? 9999 : "auto",
               boxShadow: isDragging
                   ? "0px 0px 15px rgba(0, 0, 0, 0.3)"
                   : "0px 0px 8px rgba(0, 0, 0, 0.1)",
           }
         : {};
+
+        console.log("card", card);
+        
 
     const cardStyle = {
         "--pointer-x": `${shinePosition.x}%`,
@@ -161,7 +173,7 @@ const CardComp: React.FC<{
             (shinePosition.x / 100 + shinePosition.y / 100) / 2
         }`,
         "--space": "5%",
-        "--foil-url": card.foilUrl,
+        "--foil-url": card.foilUrl ? `url(${card.foilUrl})` : undefined,
         transform: `rotateX(${rotation.rotateX}deg) rotateY(${rotation.rotateY}deg)`,
         touchAction: "none",
         width: "7rem",
@@ -190,9 +202,14 @@ const CardComp: React.FC<{
             onMouseUp={handleMouseUp}
             onTouchStart={handleMouseDown}
             onTouchEnd={handleMouseUp}
-            onMouseMove={handleMouseMove} // Update rotation on mouse move
-            onMouseLeave={handleMouseLeave} // Reset rotation on mouse leave
-            style={cardStyle}
+            onMouseMove={handleMouseMove}
+            onTouchMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+                ...cardStyle,
+                userSelect: "none",
+                WebkitUserSelect: "none",
+            }}
             whileHover={{
                 scale: 2.2,
                 height: "10rem",
@@ -205,9 +222,9 @@ const CardComp: React.FC<{
         >
             <div className='diffuse-layer' />
 
-            <div className='foil-layer' />
+           {card.isFoil && <div className='foil-layer' />}
 
-            <div className='holo-layer' />
+            {card.isFoil && <div className='holo-layer' />}
 
             <div className='glare-layer' />
 
