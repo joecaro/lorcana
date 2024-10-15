@@ -48,7 +48,7 @@ const Hand: React.FC<DropZoneProps> = ({ className }) => {
                         }}
                         whileHover={{
                             transform: `rotate(0deg) translateY(${
-                                yOffset - 20
+                                yOffset - 70
                             }px) scale(1.1)`,
                             zIndex: 10,
                         }}

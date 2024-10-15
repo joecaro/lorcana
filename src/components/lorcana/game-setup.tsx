@@ -54,15 +54,15 @@ export function GameSetupComponent() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (
-            Object.keys(formData.player1deck).length < 10 ||
-            Object.keys(formData.player2deck).length < 10
-        ) {
-            toast(
-                "Invalid Deck. Please select at least 10 cards for each player."
-            );
-            return;
-        }
+        // if (
+        //     Object.keys(formData.player1deck).length < 10 ||
+        //     Object.keys(formData.player2deck).length < 10
+        // ) {
+        //     toast(
+        //         "Invalid Deck. Please select at least 10 cards for each player."
+        //     );
+        //     return;
+        // }
 
         const player1DeckString = Object.entries(formData.player1deck)
             .flatMap(([card, count]) => Array(count).fill(card))

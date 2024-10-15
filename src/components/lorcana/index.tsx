@@ -121,9 +121,11 @@ export default function Game({
                 <div className='grid'>
                     {/* opponent */}
                     <div className='flex'>
-                        <span>
-                            <Shield />
-                            {opponent.lore}
+                        <span className='relative'>
+                            <Shield size={40} />
+                            <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                                {opponent.lore}
+                            </span>
                         </span>
                     </div>
                     {/* opponent field */}
@@ -152,6 +154,14 @@ export default function Game({
                         className='bg-purple-100 bg-opacity-20'
                     />
                 </div>
+                <div className='flex'>
+                        <span className='relative'>
+                            <Shield size={40} />
+                            <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                                {currentPlayer.lore}
+                            </span>
+                        </span>
+                    </div>
                 <div className='mt-8 text-center flex gap-2'>
                     <Deck />
                     <Hand />

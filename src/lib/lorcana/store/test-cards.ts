@@ -1029,6 +1029,10 @@ const cards: BaseCard[] = [
         modifiers: [],
         actionChecks: generateActionChecks({
             ability: (state, thisCard) => {
+                if (!baseAbilityCheck(state, thisCard)) {
+                    return null;
+                }
+
                 return getDefenderFieldCharacters(state).length > 0
                     ? {
                           type: "ability",
@@ -1107,6 +1111,10 @@ const cards: BaseCard[] = [
         modifiers: [],
         actionChecks: generateActionChecks({
             ability: (state, thisCard) => {
+                if (!baseAbilityCheck(state, thisCard)) {
+                    return null;
+                }
+
                 return getDefenderFieldCharacters(state).length > 0
                     ? {
                           type: "ability",
