@@ -1027,8 +1027,50 @@ const cards: BaseCard[] = [
         set: "JSC",
         rarity: "uncommon",
         modifiers: [],
-        actionChecks: generateActionChecks(),
-        actions: generateActions(),
+        actionChecks: generateActionChecks({
+            ability: (state, thisCard) => {
+                return getDefenderFieldCharacters(state).length > 0
+                    ? {
+                          type: "ability",
+                          card: thisCard,
+                      }
+                    : null;
+            },
+        }),
+        actions: generateActions({
+            ability: gameState => {
+                useGameStore.setState(
+                    state => {
+                        if (getDefenderFieldCharacters(state).length === 0) {
+                            console.info("No characters to damage");
+                            return state;
+                        }
+
+                        state.inputStage = {
+                            type: "ability",
+                            options: getDefenderFieldCharacters(state),
+                            prompt: "Choose a character to damage",
+                            callback: choice => {
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                ) {
+                                    return state;
+                                }
+
+                                return damageCard(state, choice, 1);
+                            },
+                        };
+
+                        return { ...state };
+                    },
+                    false,
+                    { type: "LICK FEET" }
+                );
+
+                return { ...gameState };
+            },
+        }),
         triggers: generateTriggers(),
     },
     {
@@ -1040,14 +1082,15 @@ const cards: BaseCard[] = [
         characteristics: [],
         text: [
             "~~Beach Zoomies~~ ↷ deal 3 damage to any character, but take 1 damage.",
-            "~~Sleep~~ ↷ to heal 1 strength.",
+            // TODO: Implement support for multiple abilities
+            // "~~Sleep~~ ↷ to heal 1 strength.",
         ],
         type: "character",
         flavour: "",
         color: "steel",
         cost: 1,
         strength: 6,
-        willpower: 2,
+        willpower: 1,
         lore: 1,
         inkwell: true,
         staticAbilities: {
@@ -1062,8 +1105,54 @@ const cards: BaseCard[] = [
         set: "JSC",
         rarity: "uncommon",
         modifiers: [],
-        actionChecks: generateActionChecks(),
-        actions: generateActions(),
+        actionChecks: generateActionChecks({
+            ability: (state, thisCard) => {
+                return getDefenderFieldCharacters(state).length > 0
+                    ? {
+                          type: "ability",
+                          card: thisCard,
+                      }
+                    : null;
+            },
+        }),
+        actions: generateActions({
+            ability: (gameState, thisCard) => {
+                useGameStore.setState(
+                    state => {
+                        if (getDefenderFieldCharacters(state).length === 0) {
+                            console.info("No characters to damage");
+                            return state;
+                        }
+
+                        state.inputStage = {
+                            type: "ability",
+                            options: getDefenderFieldCharacters(state),
+                            prompt: "Choose a character to damage",
+                            callback: choice => {
+                                if (
+                                    typeof choice === "string" ||
+                                    Array.isArray(choice)
+                                ) {
+                                    return state;
+                                }
+
+                                return damageCard(
+                                    damageCard(state, choice, 2),
+                                    thisCard,
+                                    1
+                                );
+                            },
+                        };
+
+                        return { ...state };
+                    },
+                    false,
+                    { type: "BEACH ZOOMIES" }
+                );
+
+                return { ...gameState };
+            },
+        }),
         triggers: generateTriggers(),
     },
     {
