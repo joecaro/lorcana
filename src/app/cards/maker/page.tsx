@@ -23,7 +23,7 @@ import {
 export default function Page() {
     const [card, setCard] = useState<Card>({
         implemented: true,
-        slug: 'card',
+        slug: "card",
         id: "1",
         url: "/cards/vinebound-titan.jpg",
         name: "VINEBOUND TITAN",
@@ -339,7 +339,7 @@ export default function Page() {
             <div className='w-full md:w-1/2'>
                 <h2 className='text-2xl font-bold mb-4'>Card Preview</h2>
                 <div className='w-full h-full flex justify-center items-center [perspective:800px]'>
-                    <CardComp className="scale-[3]" card={card} />
+                    <CardComp style={{ scale: 3 }} card={card} />
                 </div>
             </div>
         </div>

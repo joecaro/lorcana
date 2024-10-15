@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Minus, Plus } from "lucide-react";
-import { toast } from "sonner";
 import useGameStore from "@/lib/lorcana/store";
 import { GameCard } from "../card-maker";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
