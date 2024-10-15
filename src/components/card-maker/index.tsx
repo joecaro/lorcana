@@ -6,28 +6,11 @@ import { Shield, Triangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Sun from "../svg/Sun";
 import Image from "next/image";
+import { Card } from "@/lib/lorcana/types/game";
 
-export interface CardProps {
-    name: string;
-    title: string;
-    type: string;
-    characteristics: string[];
-    cardCost: string;
-    willpower: number;
-    willpowerModifier: number;
-    strength: number;
-    strengthModifier: number;
-    descriptions: string[];
-    flavorText?: string[];
-    artUrl?: string;
-    footerLeftText?: string[];
-    footerRightText?: string[];
-    cardColor: CardColor;
-    rarity: Rarity;
-    lore: number;
+export interface CardProps extends Card {
     className?: string;
     hideCardDetails?: boolean;
-    inkwell?: boolean;
 }
 
 export type Rarity =
@@ -48,80 +31,80 @@ export type CardColor =
 
 const GameCard: React.FC<CardProps> = props => {
     const darkColor =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "bg-amber-700"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "bg-amethyst-700"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "bg-emerald-800"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "bg-ruby-700"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "bg-sapphire-700"
             : "bg-steel-800";
 
     const caretClass =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "fill-amber-700 stroke-amber-700"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "fill-amethyst-700 stroke-amethyst-700"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "fill-emerald-800 stroke-emerald-800"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "fill-ruby-700 stroke-ruby-700"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "fill-sapphire-700 stroke-sapphire-700"
             : "fill-steel-800 stroke-steel-800";
 
     const lightColor =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "bg-amber-300"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "bg-amethyst-500"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "bg-emerald-600"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "bg-ruby-500"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "bg-sapphire-400"
             : "bg-steel-400";
 
     const lightText =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "text-amber-200"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "text-amethyst-200"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "text-emerald-100"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "text-ruby-200"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "text-sapphire-200"
             : "text-steel-200";
 
     const lightSvg =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "fill-amber-100 stroke-amber-700"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "fill-amethyst-100 stroke-amethyst-700"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "fill-emerald-100 stroke-emerald-700"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "fill-ruby-100 stroke-ruby-700"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "fill-sapphire-100 stroke-sapphire-700"
             : "fill-steel-100 stroke-steel-700";
 
     const darkSvg =
-        props.cardColor === "amber"
+        props.color === "amber"
             ? "fill-amber-500 stroke-amber-100"
-            : props.cardColor === "amethyst"
+            : props.color === "amethyst"
             ? "fill-amethyst-500 stroke-amethyst-100"
-            : props.cardColor === "emerald"
+            : props.color === "emerald"
             ? "fill-emerald-500 stroke-emerald-100"
-            : props.cardColor === "ruby"
+            : props.color === "ruby"
             ? "fill-ruby-500 stroke-ruby-100"
-            : props.cardColor === "sapphire"
+            : props.color === "sapphire"
             ? "fill-sapphire-500 stroke-sapphire-100"
             : "fill-steel-500 stroke-steel-100";
 
@@ -144,13 +127,13 @@ const GameCard: React.FC<CardProps> = props => {
                     {props.inkwell && (
                         <Image
                             layout='fill'
-                            sizes="18px"
+                            sizes='18px'
                             className='absolute top-0 left-0 right-0 bottom-0'
                             src='/inkable.png'
                             alt='inkable'
                         />
                     )}
-                    <p className='text-[5px]'>{props.cardCost || 1}</p>
+                    <p className='text-[5px]'>{props.cost || 1}</p>
                 </div>
 
                 {/* Image */}
@@ -159,9 +142,7 @@ const GameCard: React.FC<CardProps> = props => {
                     <img
                         className='h-full w-full object-center object-cover'
                         src={
-                            props.hideCardDetails
-                                ? "/card-back.jpg"
-                                : props.artUrl
+                            props.hideCardDetails ? "/card-back.jpg" : props.url
                         }
                         alt='card art'
                     />
@@ -170,7 +151,7 @@ const GameCard: React.FC<CardProps> = props => {
                 {/* Name */}
                 <div
                     className={[
-                        "flex justify-between z-20 relative",
+                        "flex justify-between relative",
                         lightColor,
                         props.hideCardDetails && "hidden",
                     ].join(" ")}
@@ -200,7 +181,7 @@ const GameCard: React.FC<CardProps> = props => {
                                             : ""
                                     )}
                                 >
-                                    {props.willpower + props.willpowerModifier}
+                                    {props.willpower + (props.willpowerModifier || 0)}
                                 </span>
                             </div>
                             <div className='relative'>
@@ -220,7 +201,7 @@ const GameCard: React.FC<CardProps> = props => {
                                             : ""
                                     )}
                                 >
-                                    {props.strength + props.strengthModifier}
+                                    {props.strength + (props.strengthModifier || 0)}
                                 </span>
                             </div>
                         </div>
@@ -235,12 +216,13 @@ const GameCard: React.FC<CardProps> = props => {
                         props.hideCardDetails && "hidden"
                     )}
                 >
-                    <div className={"h-[120%] absolute left-0.5 -top-[10%]"}>
-                        <Image
-                            layout='fill'
-                            sizes="20px"
+                    <div
+                        className={"h-[120%] absolute left-0.5 -top-[10%] z-10"}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                             className='h-full object-contain'
-                            src={colorIcons[props.cardColor]}
+                            src={colorIcons[props.color]}
                             alt='expansion-icon'
                         />
                     </div>
@@ -264,7 +246,7 @@ const GameCard: React.FC<CardProps> = props => {
                     <div
                         className={`flex flex-col justify-around items-start text-start p-[0.1rem]`}
                     >
-                        {props.descriptions?.map((text, index, { length }) => {
+                        {props.text?.map((text, index, { length }) => {
                             const formattedText = formatter(text);
                             return (
                                 <p
@@ -280,16 +262,15 @@ const GameCard: React.FC<CardProps> = props => {
                                 />
                             );
                         })}
-                        {(props.flavorText?.length || 0) > 0 && (
+                        {(props.flavour?.length || 0) > 0 && (
                             <span className='w-full h-[0.25px] bg-gradient-to-r from-neutral-600 to-transparent' />
                         )}
-                        {props.flavorText?.map((text, index) => (
-                            <p
-                                key={index}
-                                className='text-neutral-900 text-[4px]'
-                                dangerouslySetInnerHTML={{ __html: text }}
-                            />
-                        ))}
+                        <p
+                            className='text-neutral-900 text-[4px]'
+                            dangerouslySetInnerHTML={{
+                                __html: props.flavour || "",
+                            }}
+                        />
                     </div>
                     <div className='relative text-neutral-900 bg-yellow-100 bg-opacity-30 flex flex-col gap-[2px] justify-center items-center text-[4px]'>
                         <Triangle
@@ -325,7 +306,10 @@ const GameCard: React.FC<CardProps> = props => {
                 )}
             >
                 <div className='flex flex-col text-[3px] flex-grow'>
-                    {props.footerLeftText?.map((text, index) => (
+                    {[
+                        props.illustrator,
+                        `${props.number} / ${props.language} / ${props.set}`,
+                    ].map((text, index) => (
                         <p
                             dangerouslySetInnerHTML={{ __html: text }}
                             key={index}
@@ -336,7 +320,7 @@ const GameCard: React.FC<CardProps> = props => {
                 <div className='w-2 justify-self-center relative'>
                     <Image
                         layout='fill'
-                        sizes="20px"    
+                        sizes='20px'
                         className='object-contain w-full h-full'
                         src={rarityIcons[props.rarity]}
                         alt={props.rarity}
@@ -344,12 +328,11 @@ const GameCard: React.FC<CardProps> = props => {
                 </div>
 
                 <div className='flex flex-col flex-grow items-end text-[3px]'>
-                    {props.footerRightText?.map((text, index) => (
-                        <p
-                            dangerouslySetInnerHTML={{ __html: text }}
-                            key={index}
-                        />
-                    ))}
+                    <p
+                        dangerouslySetInnerHTML={{
+                            __html: "Disney Lorcana &#169;Disney",
+                        }}
+                    />
                 </div>
             </div>
         </div>

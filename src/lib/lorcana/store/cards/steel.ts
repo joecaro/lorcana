@@ -8,6 +8,7 @@ import {
 const SteelCards: BaseCard[] = [
     {
         implemented: true,
+        slug: "aladdin-cornered-swordsman",
         url: "/cards/aladdin-cornered-swordsman.jpg",
         name: "Aladdin",
         title: "Cornered Swordsman",

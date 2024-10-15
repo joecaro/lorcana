@@ -9,15 +9,12 @@ export const manaIcons: { [key: string]: string } = {
 };
 
 export const colorIcons: Record<CardColor, string> = {
-    amber: "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_amber.png",
-    amethyst:
-        "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_amethyst.png",
-    emerald:
-        "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_emerald.png",
-    ruby: "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_ruby.png",
-    sapphire:
-        "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_sapphire.png",
-    steel: "https://www.disneylorcana.com/cms/gallery/lorcana-web/inks/dlc_ink_steel.png",
+    amber: "/inks/amber.png",
+    amethyst: "/inks/amethyst.png",
+    emerald: "/inks/emerald.png",
+    ruby: "/inks/ruby.png",
+    sapphire: "/inks/sapphire.png",
+    steel: "/inks/steel.png",
 };
 
 export const rarityIcons: Record<Rarity, string> = {

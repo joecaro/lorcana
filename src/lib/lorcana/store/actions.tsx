@@ -383,6 +383,16 @@ export function damageCard(
     return { ...state };
 }
 
+export function exertCard(state: GameState, card: Card): GameState {
+    const player = state.players[state.currentPlayer];
+    const target = player.field.find(c => c.id === card.id);
+    if (!target) return state;
+    target.exerted = true;
+    state.inputStage = null;
+
+    return { ...state };
+}
+
 export function moveCardToZone(
     sourceZone: "inkwell" | "hand" | "field",
     targetZone: "inkwell" | "hand" | "field",

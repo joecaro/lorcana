@@ -387,20 +387,26 @@ export function create(card: BaseCard, ownerId: string): Card {
     };
 }
 
-export function createCards(cards: BaseCard[], ownerId: string): Card[] {
+export function createCards(
+    cards: BaseCard[],
+    ownerId: string,
+    fill?: boolean
+): Card[] {
     return cards
         .reduce((acc: BaseCard[], card) => {
             // Set the probability factor based on the rarity of the card
             const rarityFactor = getRarityFactor(card.rarity);
-            
+
             // Generate a random number of copies, weighted toward more copies for lower rarity
-            const numCopies = Math.min(
-                Math.max(
-                    1,
-                    Math.floor(Math.random() ** (1 / rarityFactor) * 4)
-                ),
-                4
-            );
+            const numCopies = fill
+                ? Math.min(
+                      Math.max(
+                          1,
+                          Math.floor(Math.random() ** (1 / rarityFactor) * 4)
+                      ),
+                      4
+                  )
+                : 1;
 
             return [...acc, ...Array(numCopies).fill(card)];
         }, [])

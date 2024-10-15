@@ -9,6 +9,7 @@ import {
 const AmethystCards: BaseCard[] = [
     {
         implemented: true,
+        slug: "dr-facilier-charlatan",
         url: "/cards/dr-facilier-charlatan.jpg",
         name: "Dr. Facilier",
         title: "Charlatan",

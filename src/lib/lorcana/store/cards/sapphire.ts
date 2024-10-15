@@ -9,6 +9,7 @@ import {
 const SapphireCards: BaseCard[] = [
     {
         implemented: true,
+        slug: "hades-infernal-schemer",
         url: "/cards/hades-infernal-schemer.jpg",
         name: "Hades",
         title: "Infernal Schemer",

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { AnimationControls, motion, TargetAndTransition } from "framer-motion";
 import { useDraggable } from "@dnd-kit/core";
 import { Card } from "@/lib/lorcana/types/game";
 import { GameCard } from "../card-maker";
@@ -22,28 +22,8 @@ const CardUI: React.FC<{
     return (
         <GameCard
             className={cn(card.exerted && "opacity-50")}
-            cardColor={card.color}
-            rarity={card.rarity}
-            artUrl={card.url}
             hideCardDetails={hideCardDetails}
-            cardCost={card.cost.toString()}
-            name={card.name}
-            title={card.title}
-            type={card.type}
-            characteristics={card.characteristics}
-            descriptions={card.text}
-            flavorText={[card.flavour || ""]}
-            willpower={card.willpower}
-            willpowerModifier={card.willpowerModifier}
-            strength={card.strength}
-            strengthModifier={card.strengthModifier}
-            footerLeftText={[
-                card.illustrator,
-                `${card.number} / ${card.language} / ${card.set}`,
-            ]}
-            footerRightText={["Disney Lorcana &#169;Disney"]}
-            lore={card.lore}
-            inkwell={card.inkwell}
+            {...card}
         />
     );
 };
@@ -52,8 +32,9 @@ const CardComp: React.FC<{
     card: Card;
     hideCardDetails?: boolean;
     square?: boolean;
-    className?: string;
-}> = ({ card, hideCardDetails, square, className }) => {
+    onClick?: () => void;
+    style?: AnimationControls | TargetAndTransition;
+}> = ({ card, hideCardDetails, square, onClick, style }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({ id: card.id });
 
@@ -107,6 +88,7 @@ const CardComp: React.FC<{
                 inputStage?.callback(card); // Handle click action
             }
         }
+        onClick?.();
         startPos.current = null;
     };
 
@@ -154,7 +136,7 @@ const CardComp: React.FC<{
               x: unSnap ? transform.x : 0,
               y: unSnap ? transform.y : 0,
               rotation: "initial",
-              zIndex: isDragging ? 9999 : "auto",
+              zIndex: isDragging ? 9999 : "initial",
               boxShadow: isDragging
                   ? "0px 0px 15px rgba(0, 0, 0, 0.3)"
                   : "0px 0px 8px rgba(0, 0, 0, 0.1)",
@@ -192,9 +174,11 @@ const CardComp: React.FC<{
             {...attributes}
             layout
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, scale: 1, ...style }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className={`overflow-hidden bg-gray-400 rounded-lg shadow-md flex items-start justify-center cursor-move ${className} `}
+            className={cn(
+                `overflow-hidden bg-gray-400 rounded-lg shadow-md flex items-start justify-center cursor-move`
+            )}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onTouchStart={handleMouseDown}
@@ -210,7 +194,7 @@ const CardComp: React.FC<{
             whileHover={{
                 scale: 2.2,
                 height: "10rem",
-                zIndex: 10,
+                zIndex: 999999,
                 rotateX: rotation.rotateX,
                 rotateY: rotation.rotateY,
             }}
@@ -219,7 +203,7 @@ const CardComp: React.FC<{
         >
             <div className='diffuse-layer' />
 
-           {card.isFoil && <div className='foil-layer' />}
+            {card.isFoil && <div className='foil-layer' />}
 
             {card.isFoil && <div className='holo-layer' />}
 

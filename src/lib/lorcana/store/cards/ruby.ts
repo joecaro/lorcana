@@ -9,6 +9,7 @@ import {
 const RubyCards: BaseCard[] = [
     {
         implemented: true,
+        slug: "pongo-ol-rascal",
         url: "/cards/pongo-ol-rascal.jpg",
         name: "Pongo",
         title: "Ol' Rascal",

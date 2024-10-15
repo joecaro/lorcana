@@ -19,7 +19,14 @@ export type GameState = {
         callback: (choice: string | Card | Card[]) => void;
     } | null;
     turnFlags: Partial<Record<Action, boolean>>;
-    initializePlayerDecks: () => void;
+    initializeParamPlayers: (players: ParamPlayer[]) => void;
+    allCards: BaseCard[]
+};
+
+export type ParamPlayer = {
+    name: string;
+    isHuman: boolean;
+    sluggyDeck: string[];
 };
 
 export type Player = {
@@ -58,6 +65,7 @@ export type StaticAbility = "evasive" | "resist" | "challenger" | "sing";
 
 export type BaseCard = {
     implemented: boolean;
+    slug: string;
     url: string;
     name: string;
     title: string;
@@ -88,7 +96,12 @@ export type BaseCard = {
     >;
     triggers: Record<
         Event,
-        (gameState: GameState, thisCard: Card, thatCard?: Card, targetCard?: Card) => GameState
+        (
+            gameState: GameState,
+            thisCard: Card,
+            thatCard?: Card,
+            targetCard?: Card
+        ) => GameState
     >;
     staticAbilities: Record<StaticAbility, { active: boolean; value?: number }>;
 };

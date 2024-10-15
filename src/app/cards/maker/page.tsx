@@ -23,9 +23,10 @@ import {
 export default function Page() {
     const [card, setCard] = useState<Card>({
         implemented: true,
+        slug: 'card',
         id: "1",
-        url: "/cards/ancient-protector.webp",
-        name: "STORM ENCHANTER",
+        url: "/cards/vinebound-titan.jpg",
+        name: "VINEBOUND TITAN",
         title: "Master of the Elements",
         characteristics: ["storyborn", "sorcerer"],
         text: [
@@ -56,6 +57,7 @@ export default function Page() {
             challenger: { active: false },
             evasive: { active: false },
             resist: { active: false },
+            sing: { active: true },
         },
         exerted: false,
         zone: "deck",

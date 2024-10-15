@@ -11,6 +11,7 @@ import {
 const EmeraldCards: BaseCard[] = [
     {
         implemented: true,
+        slug: "flynn-rider-charming-rogue",
         url: "/cards/flynn-rider-charming-rogue.jpg",
         name: "Flynn Rider",
         title: "Charming Rogue",

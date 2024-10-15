@@ -13,6 +13,7 @@ import {
 const AmberCards: BaseCard[] = [
     {
         url: "/cards/ariel-on-human-legs.jpg",
+        slug: "ariel-on-human-legs",
         name: "Ariel",
         title: "On Human Legs",
         characteristics: ["hero", "storyborn", "princess"],
@@ -44,6 +45,7 @@ const AmberCards: BaseCard[] = [
     },
     {
         implemented: true,
+        slug: "ariel-spectacular-singer",
         url: "/cards/ariel-spectacular-singer.jpg",
         name: "Ariel",
         title: "Spectacular Singer",
@@ -142,6 +144,7 @@ const AmberCards: BaseCard[] = [
     },
     {
         implemented: true,
+        slug: "hades-lord-of-the-underworld",
         url: "/cards/hades-lord-of-the-underworld.jpg",
         name: "Hades",
         title: "Lord of the Underworld",
@@ -243,6 +246,7 @@ const AmberCards: BaseCard[] = [
     },
     {
         implemented: true,
+        slug: "dalmation-puppy-tail-wagger",
         url: "/cards/dalmation-puppy-tail-wagger.jpg",
         name: "Dalmatian Puppy",
         title: "Tail Wagger",
@@ -276,6 +280,7 @@ const AmberCards: BaseCard[] = [
     },
     {
         implemented: true,
+        slug: "perdita-devoted-mother",
         url: "/cards/perdita-devoted-mother.jpg",
         name: "Perdita",
         title: "Devoted Mother",
@@ -434,6 +439,7 @@ const AmberCards: BaseCard[] = [
     },
     {
         implemented: true,
+        slug: "patch-little-menace",
         url: "/cards/patch-intimidating-puppy.jpg",
         name: "Patch",
         title: "Little Menace",

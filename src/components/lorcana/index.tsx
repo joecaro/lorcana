@@ -9,7 +9,12 @@ import useGameStore from "@/lib/lorcana/store";
 import Hand from "./hand";
 import { Shield } from "lucide-react";
 import Deck from "./deck";
-import { Action, Card as CardType, Player } from "@/lib/lorcana/types/game";
+import {
+    Action,
+    Card as CardType,
+    ParamPlayer,
+    Player,
+} from "@/lib/lorcana/types/game";
 import { computeAvailableActions } from "@/lib/lorcana/store/utils";
 import { moveCardToZone, PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
 import { Card } from "../ui/card";
@@ -39,6 +44,10 @@ const DropZone: React.FC<DropZoneProps> = ({
     const players = useGameStore(state => state.players);
     const currentPlayerIndex = useGameStore(state => state.currentPlayer);
     const availableInk = players[currentPlayerIndex].availableInk;
+    const usedInk = (idx: number) =>
+        cards.length - Math.abs(cards.length - availableInk) < idx + 1 &&
+        inkwell;
+
     return (
         <motion.div
             ref={setNodeRef}
@@ -47,24 +56,25 @@ const DropZone: React.FC<DropZoneProps> = ({
         >
             {cards.map((card, idx) => (
                 <CardComp
-                    key={"drop" + id + card.id}
                     card={card}
                     hideCardDetails={hideCardDetails}
                     square={square}
-                    className={`${
-                        cards.length - Math.abs(cards.length - availableInk) <
-                            idx + 1 && inkwell
-                            ? "opacity-30"
-                            : ""
-                    }`}
+                    style={usedInk(idx) ? { opacity: ".3" } : {}}
+                    key={"drop" + id + card.id}
                 />
             ))}
         </motion.div>
     );
 };
 
-export default function Board() {
-    useGameInitializer();
+export default function Game({
+    player1,
+    player2,
+}: {
+    player1: ParamPlayer;
+    player2: ParamPlayer;
+}) {
+    useGameInitializer({ player1, player2 });
     const players = useGameStore(state => state.players);
     const currentPlayerIndex = useGameStore(state => state.currentPlayer);
     const inputStage = useGameStore(state => state.inputStage);
