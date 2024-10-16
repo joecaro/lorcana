@@ -18,7 +18,7 @@ export default function DraftSetup() {
     const [formData, setFormData] = useState({
         player1is: "human",
         player1deck: {} as PlayerDeck,
-        player2is: "ai",
+        player2is: "human",
         player2deck: {} as PlayerDeck,
     });
     const [activePlayer, setActivePlayer] = useState<"player1" | "player2">(
@@ -136,7 +136,7 @@ export default function DraftSetup() {
                     </div>
 
                     <div className='flex-1 flex'>
-                        <div className='mt-2 flex flex-wrap gap-2 w-full'>
+                        <div className='mt-2 flex flex-wrap content-start gap-2 flex-1 basis-full w-full'>
                             {Object.entries(
                                 formData[`${activePlayer}deck`]
                             ).map(([cardSlug, count]) => {
@@ -160,7 +160,7 @@ export default function DraftSetup() {
                             })}
                         </div>
 
-                        <div className='flex flex-col gap-2'>
+                        <div className='flex flex-col flex-1 gap-2'>
                             <DeckStats deck={formData[`${activePlayer}deck`]} />
                             <div className='mt-2 flex flex-wrap gap-2 content-start w-full'>
                                 {Object.entries(

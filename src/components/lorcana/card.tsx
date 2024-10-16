@@ -4,7 +4,7 @@ import { AnimationControls, motion, TargetAndTransition } from "framer-motion";
 import { useDraggable } from "@dnd-kit/core";
 import { Card } from "@/lib/lorcana/types/game";
 import { GameCard } from "../card-maker";
-import { cn } from "@/lib/utils";
+import { cn, isMobile } from "@/lib/utils";
 import useGameStore from "@/lib/lorcana/store";
 
 import "./card.css";
@@ -155,8 +155,8 @@ const CardComp: React.FC<{
         "--foil-url": card.foilUrl ? `url(${card.foilUrl})` : undefined,
         transform: `rotateX(${rotation.rotateX}deg) rotateY(${rotation.rotateY}deg)`,
         touchAction: "none",
-        width: "7rem",
-        height: square ? "7rem" : "10rem",
+        width: square && isMobile() ? "3rem" : "7rem",
+        height: square ? (isMobile() ? "3rem" : "7rem") : "10rem",
         border: "1px solid black",
         borderBottom: square ? "5px solid black" : "1px solid black",
         boxShadow: `0 0 0 1px ${isOption(card) ? "green" : "#fff"}`,

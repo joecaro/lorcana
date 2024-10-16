@@ -4,6 +4,10 @@ import { useDroppable } from "@dnd-kit/core";
 import { motion } from "framer-motion";
 import CardComp from "./card";
 import useGameStore from "@/lib/lorcana/store";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type DropZoneProps = {
     className?: string;
@@ -23,12 +27,22 @@ const Hand: React.FC<DropZoneProps> = ({ className }) => {
     const maxOffset = 20; // Maximum Y offset
     // const spacing = 60; // Adjust this for card spacing
 
+    const [toggled, setToggled] = useState(false);
+
     return (
         <motion.div
             ref={setNodeRef}
-            className={`translate-y-3 flex flex-1 justify-center items-end space-x-[-40px] p-4 ${className}`} // Space between cards overlaps
-            style={{ height: "200px" }} // Container height can be adjusted
+            className={cn(
+                `-translate-y-4 lg:translate-y-3 flex flex-1 justify-center items-end space-x-[-40px] p-4 relative ${className}`,
+                toggled && "-translate-y-32"
+            )}
         >
+            <Button
+                className='absolute -top-8 lg:hidden'
+                onClick={() => setToggled(!toggled)}
+            >
+                {toggled ? <ChevronDown /> : <ChevronUp />}
+            </Button>
             {hand.map((card, index) => {
                 const rotation =
                     ((index - cardCount / 2) / cardCount) * maxRotation;
@@ -58,9 +72,7 @@ const Hand: React.FC<DropZoneProps> = ({ className }) => {
                             damping: 20,
                         }}
                     >
-                        <CardComp
-                            card={card}
-                        />
+                        <CardComp card={card} />
                     </motion.div>
                 );
             })}

@@ -10,12 +10,12 @@ export default function Deck() {
     const deck = players[currentPlayerIndex].deck;
     const slicedDeck = deck.slice(-15);
     return (
-        <motion.div className='w-32 h-52 relative'>
+        <motion.div className='w-10 h-16 lg:w-32 lg:h-52 relative'>
             {slicedDeck.map((card, idx) => (
                 <motion.div
                     key={card.id}
                     layout
-                    className='w-32 h-48 border rounded border-neutral-500'
+                    className='w-10 h-16 lg:w-32 lg:h-48 border rounded border-neutral-500'
                     style={{
                         position: "absolute",
                         bottom: `${idx}px`,
@@ -28,7 +28,7 @@ export default function Deck() {
                             src='/card-back.jpg'
                             width={700}
                             height={1000}
-                            className='border rounded border-neutral-500 cursor-pointer object-cover'
+                            className='border rounded border-neutral-500 cursor-pointer object-cover w-10 h-16 lg:w-32 lg:h-48'
                             onClick={() =>
                                 PLAYER_ACTIONS.draw(
                                     1,

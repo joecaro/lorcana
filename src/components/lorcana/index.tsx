@@ -52,7 +52,7 @@ const DropZone: React.FC<DropZoneProps> = ({
         <motion.div
             ref={setNodeRef}
             layout
-            className={`h-32 m-2 p-2 rounded-lg flex flex-wrap gap-2 items-start ${className}`}
+            className={`h-14 lg:h-32 m-2 p-2 rounded-lg flex flex-wrap gap-2 items-start ${className}`}
         >
             {cards.map((card, idx) => (
                 <CardComp
