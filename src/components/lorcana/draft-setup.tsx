@@ -116,14 +116,14 @@ export default function DraftSetup() {
                         Start Game
                     </Button>
                 </div>
-                <div className='space-y-4 flex'>
+                <div className='space-y-4 flex flex-col'>
                     <div className='flex-1 basis-full'>
                         <h2 className='text-xl font-semibold'>
                             {activePlayer === "player1"
                                 ? "Player 1"
                                 : "Player 2"}
                         </h2>
-                        <div className='flex gap-2 flex-wrap [perspective:1000px] min-h-96 mb-12'>
+                        <div className='flex gap-2 flex-wrap [perspective:1000px] min-h-96 mb-12 border rounded p-2'>
                             {currentList.map(card => (
                                 <CardComp
                                     key={card.slug}
@@ -133,6 +133,9 @@ export default function DraftSetup() {
                                 />
                             ))}
                         </div>
+                    </div>
+
+                    <div className='flex-1 flex'>
                         <div className='mt-2 flex flex-wrap gap-2 w-full'>
                             {Object.entries(
                                 formData[`${activePlayer}deck`]
@@ -156,8 +159,7 @@ export default function DraftSetup() {
                                 ) : null;
                             })}
                         </div>
-                    </div>
-                    <div className='flex-1'>
+
                         <div className='flex flex-col gap-2'>
                             <DeckStats deck={formData[`${activePlayer}deck`]} />
                             <div className='mt-2 flex flex-wrap gap-2 content-start w-full'>
