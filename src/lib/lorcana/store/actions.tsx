@@ -370,14 +370,19 @@ export function damageCard(
     card: Card,
     damage: number
 ): GameState {
-    const target = state.players[(state.currentPlayer + 1) % 2].field.find(
-        c => c.id === card.id
-    );
+    const target =
+        state.players[state.currentPlayer].field.find(
+            c => c.id === card.id
+        ) ||
+        state.players[(state.currentPlayer + 1) % 2].field.find(
+            c => c.id === card.id
+        );
     if (!target) return state;
-    target.strength -= damage;
-    if (target.strength <= 0) {
+    target.strengthModifier -= damage;
+    if (target.strength + target.strengthModifier <= 0) {
         state.players = moveToDiscard(state, target);
     }
+
     state.inputStage = null;
 
     return { ...state };

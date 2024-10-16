@@ -39,12 +39,12 @@ export function generateActionChecks(
             }
             return { type: "quest", card: thisCard };
         },
-        challenge: (_: GameState, thisCard: Card) => {
+        challenge: (state: GameState, thisCard: Card) => {
             if (thisCard.exerted) {
                 return null;
             }
 
-            const potentialTargets = findPotentialTargets(_, thisCard);
+            const potentialTargets = findPotentialTargets(state, thisCard);
 
             if (potentialTargets.length === 0) {
                 return null;

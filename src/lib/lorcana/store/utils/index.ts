@@ -7,6 +7,7 @@ import {
     MultipleCardAction,
     Zone,
 } from "../../types/game";
+import { getDefenderFieldCharacters } from "./cards";
 
 export function drawCard(
     gameState: GameState,
@@ -34,7 +35,7 @@ export function drawCard(
 }
 
 export function staticAbilitiesCheck(targetCard: Card, thisCard: Card) {
-    let canTarget = false;
+    let canTarget = true;
     if (targetCard.staticAbilities.evasive.active) {
         canTarget = thisCard.staticAbilities.evasive.active;
     }
@@ -46,13 +47,13 @@ export function findPotentialTargets(
     gameState: GameState,
     thisCard: Card
 ): Card[] {
-    const opponent = gameState.players[gameState.currentPlayer === 0 ? 1 : 0];
-    const potentialTargets = opponent.field.filter(
-        card =>
-            card.strength > 0 &&
-            card.exerted &&
-            staticAbilitiesCheck(card, thisCard)
+    const potentialTargets = getDefenderFieldCharacters(gameState).filter(
+        card => staticAbilitiesCheck(card, thisCard) && card.exerted
     );
+
+    if (potentialTargets.length > 0) {
+        console.log(thisCard.name, "can target", potentialTargets);
+    }
 
     return potentialTargets;
 }

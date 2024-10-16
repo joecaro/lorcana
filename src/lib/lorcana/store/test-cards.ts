@@ -313,7 +313,7 @@ const cards: BaseCard[] = [
                                                             : state;
 
                                                     const exertedCardState =
-                                                        exertCard(
+                                                        moveToDiscard(
                                                             updatedPlayerState,
                                                             thisCard
                                                         );
@@ -813,14 +813,16 @@ const cards: BaseCard[] = [
                                 options: getDefenderFieldCharacters(state),
                                 prompt: "Choose a character to damage",
                                 callback: choice => {
-                                    if (
-                                        typeof choice === "string" ||
-                                        Array.isArray(choice)
-                                    ) {
-                                        return state;
-                                    }
+                                    useGameStore.setState(state => {
+                                        if (
+                                            typeof choice === "string" ||
+                                            Array.isArray(choice)
+                                        ) {
+                                            return state;
+                                        }
 
-                                    return damageCard(state, choice, 1);
+                                        return damageCard(state, choice, 1);
+                                    });
                                 },
                             };
 
@@ -1042,7 +1044,7 @@ const cards: BaseCard[] = [
             },
         }),
         actions: generateActions({
-            ability: gameState => {
+            ability: (gameState, thisCard) => {
                 useGameStore.setState(
                     state => {
                         if (getDefenderFieldCharacters(state).length === 0) {
@@ -1055,21 +1057,32 @@ const cards: BaseCard[] = [
                             options: getDefenderFieldCharacters(state),
                             prompt: "Choose a character to damage",
                             callback: choice => {
-                                if (
-                                    typeof choice === "string" ||
-                                    Array.isArray(choice)
-                                ) {
-                                    return state;
-                                }
+                                useGameStore.setState(
+                                    state => {
+                                        if (
+                                            typeof choice === "string" ||
+                                            Array.isArray(choice)
+                                        ) {
+                                            return state;
+                                        }
 
-                                return damageCard(state, choice, 1);
+                                        state.inputStage = null;
+
+                                        return exertCard(
+                                            damageCard(state, choice, 1),
+                                            thisCard
+                                        );
+                                    },
+                                    false,
+                                    { type: "LICK FEET" }
+                                );
                             },
                         };
 
                         return { ...state };
                     },
                     false,
-                    { type: "LICK FEET" }
+                    { type: "CHOOSE LICK FEET" }
                 );
 
                 return { ...gameState };
@@ -1137,17 +1150,28 @@ const cards: BaseCard[] = [
                             options: getDefenderFieldCharacters(state),
                             prompt: "Choose a character to damage",
                             callback: choice => {
-                                if (
-                                    typeof choice === "string" ||
-                                    Array.isArray(choice)
-                                ) {
-                                    return state;
-                                }
+                                useGameStore.setState(
+                                    state => {
+                                        if (
+                                            typeof choice === "string" ||
+                                            Array.isArray(choice)
+                                        ) {
+                                            return state;
+                                        }
 
-                                return damageCard(
-                                    damageCard(state, choice, 2),
-                                    thisCard,
-                                    1
+                                        state.inputStage = null;
+
+                                        return exertCard(
+                                            damageCard(
+                                                damageCard(state, choice, 2),
+                                                thisCard,
+                                                1
+                                            ),
+                                            thisCard
+                                        );
+                                    },
+                                    false,
+                                    { type: "BEACH ZOOMIES" }
                                 );
                             },
                         };
@@ -1155,7 +1179,7 @@ const cards: BaseCard[] = [
                         return { ...state };
                     },
                     false,
-                    { type: "BEACH ZOOMIES" }
+                    { type: "CHOOSE BEACH ZOOMIES" }
                 );
 
                 return { ...gameState };
