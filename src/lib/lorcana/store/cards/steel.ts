@@ -1,9 +1,4 @@
 import { BaseCard } from "../../types/game";
-import {
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
-} from "../utils/cards";
 
 const SteelCards: BaseCard[] = [
     {
@@ -28,14 +23,14 @@ const SteelCards: BaseCard[] = [
         number: 171,
         set: "TFC",
         rarity: "common",
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
+        abilities: [],
         staticAbilities: {
             challenger: { active: false },
             evasive: { active: false },
             resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
         modifiers: [],
     },

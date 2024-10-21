@@ -1,14 +1,7 @@
-import useGameStore from "..";
 import { BaseCard } from "../../types/game";
-import {
-    createSingerText,
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
-    getAttackerDiscard,
-    getDefenderFieldCharacters,
-    getXCardFromPlayerDeck,
-} from "../utils/cards";
+import { moveCardToZoneReturnState } from "../actions";
+import { chooseCardFromZonToZone } from "../utils/abilities";
+import { createSingerText } from "../utils/cards";
 
 const AmberCards: BaseCard[] = [
     {
@@ -33,14 +26,14 @@ const AmberCards: BaseCard[] = [
         rarity: "uncommon",
         implemented: true,
         modifiers: [],
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
+        abilities: [],
         staticAbilities: {
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
-            sing: { active: false },
+            sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
     },
     {
@@ -52,7 +45,7 @@ const AmberCards: BaseCard[] = [
         characteristics: ["hero", "storyborn", "princess"],
         text: [
             createSingerText(5),
-            "~~MUSICAL DEBUT~~ When you play this character, look at the top 4 cards of your deck. You may reveal a song card and put it into your hand. Put the rest on the bottom of your deck in any order.",
+            // "~~MUSICAL DEBUT~~ When you play this character, look at the top 4 cards of your deck. You may reveal a song card and put it into your hand. Put the rest on the bottom of your deck in any order.",
         ],
         type: "character",
         inkwell: true,
@@ -67,80 +60,15 @@ const AmberCards: BaseCard[] = [
         rarity: "super rare",
         modifiers: [],
         number: 2,
+        abilities: [],
         staticAbilities: {
             evasive: { active: false },
             challenger: { active: false },
             resist: { active: false },
             sing: { active: true, value: 5 },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({
-            play: (gameState, thisCard, thatCard) => {
-                if (thatCard?.id === thisCard.id) {
-                    const top4Cards = getXCardFromPlayerDeck(
-                        gameState,
-                        gameState.currentPlayer,
-                        4
-                    );
-
-                    gameState.inputStage = {
-                        type: "play",
-                        options: top4Cards,
-                        maxSelections: 1,
-                        showDialogue: true,
-                        prompt: "Choose a song card to put into your hand",
-                        callback: choice => {
-                            useGameStore.setState(
-                                state => {
-                                    if (
-                                        typeof choice === "string" ||
-                                        Array.isArray(choice)
-                                    ) {
-                                        return state;
-                                    }
-
-                                    const currentPlayerIndex =
-                                        state.currentPlayer;
-
-                                    const updatedHand = [
-                                        ...state.players[currentPlayerIndex]
-                                            .hand,
-                                        choice,
-                                    ];
-
-                                    const updatedDeck = state.players[
-                                        currentPlayerIndex
-                                    ].deck.filter(
-                                        card => card.id !== choice.id
-                                    );
-
-                                    const updatedPlayers = state.players.map(
-                                        (player, index) =>
-                                            index === currentPlayerIndex
-                                                ? {
-                                                      ...player,
-                                                      hand: updatedHand,
-                                                      deck: updatedDeck,
-                                                  }
-                                                : player
-                                    );
-
-                                    return {
-                                        ...state,
-                                        players: updatedPlayers,
-                                        inputStage: null,
-                                    };
-                                },
-                                false,
-                                { type: "Musical Debut" }
-                            );
-                        },
-                    };
-                }
-                return { ...gameState };
-            },
-        }),
     },
     {
         implemented: true,
@@ -167,81 +95,14 @@ const AmberCards: BaseCard[] = [
         set: "TFC",
         rarity: "rare",
         modifiers: [],
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({
-            play: (gameState, thisCard, thatCard) => {
-                if (thatCard?.id === thisCard.id) {
-                    const discardedCharacterCards = getAttackerDiscard(
-                        gameState
-                    ).filter(c => c.type === "character");
-
-                    if (discardedCharacterCards.length === 0) {
-                        return { ...gameState };
-                    }
-
-                    gameState.inputStage = {
-                        type: "play",
-                        options: discardedCharacterCards,
-                        maxSelections: 1,
-                        showDialogue: true,
-                        prompt: "Choose a character to put into your hand",
-                        callback: choice => {
-                            useGameStore.setState(
-                                state => {
-                                    if (
-                                        typeof choice === "string" ||
-                                        Array.isArray(choice)
-                                    ) {
-                                        return state;
-                                    }
-
-                                    const currentPlayerIndex =
-                                        state.currentPlayer;
-
-                                    const updatedHand = [
-                                        ...state.players[currentPlayerIndex]
-                                            .hand,
-                                        choice,
-                                    ];
-
-                                    const updatedDeck = state.players[
-                                        currentPlayerIndex
-                                    ].deck.filter(
-                                        card => card.id !== choice.id
-                                    );
-
-                                    const updatedPlayers = state.players.map(
-                                        (player, index) =>
-                                            index === currentPlayerIndex
-                                                ? {
-                                                      ...player,
-                                                      hand: updatedHand,
-                                                      deck: updatedDeck,
-                                                  }
-                                                : player
-                                    );
-
-                                    return {
-                                        ...state,
-                                        players: updatedPlayers,
-                                        inputStage: null,
-                                    };
-                                },
-                                false,
-                                { type: "WELL OF SOULS" }
-                            );
-                        },
-                    };
-                }
-                return { ...gameState };
-            },
-        }),
+        abilities: [chooseCardFromZonToZone("discard", "hand", "play")],
         staticAbilities: {
             evasive: { active: false },
-            resist: { active: false },
             challenger: { active: false },
+            resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
     },
     {
@@ -268,14 +129,14 @@ const AmberCards: BaseCard[] = [
         set: "ITI",
         rarity: "common",
         modifiers: [],
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
+        abilities: [],
         staticAbilities: {
             evasive: { active: false },
-            resist: { active: false },
             challenger: { active: false },
+            resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
     },
     {
@@ -302,139 +163,61 @@ const AmberCards: BaseCard[] = [
         set: "ITI",
         rarity: "legendary",
         modifiers: [],
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({
-            play: (gameState, thisCard, thatCard) => {
-                if (thatCard?.id === thisCard.id) {
-                    const discardedCharacterCards = getAttackerDiscard(
-                        gameState
-                    ).filter(c => c.type === "character");
-
-                    gameState.inputStage = {
-                        type: "play",
-                        options: discardedCharacterCards,
-                        maxSelections: 1,
-                        showDialogue: true,
-                        prompt: "Choose a character to put into your hand",
-                        callback: choice => {
-                            useGameStore.setState(
-                                state => {
-                                    if (
-                                        typeof choice === "string" ||
-                                        Array.isArray(choice)
-                                    ) {
-                                        return state;
-                                    }
-
-                                    const currentPlayerIndex =
-                                        state.currentPlayer;
-
-                                    const updatedHand = [
-                                        ...state.players[currentPlayerIndex]
-                                            .hand,
-                                        choice,
-                                    ];
-
-                                    const updatedDeck = state.players[
-                                        currentPlayerIndex
-                                    ].deck.filter(
-                                        card => card.id !== choice.id
-                                    );
-
-                                    const updatedPlayers = state.players.map(
-                                        (player, index) =>
-                                            index === currentPlayerIndex
-                                                ? {
-                                                      ...player,
-                                                      hand: updatedHand,
-                                                      deck: updatedDeck,
-                                                  }
-                                                : player
-                                    );
-
-                                    return {
-                                        ...state,
-                                        players: updatedPlayers,
-                                        inputStage: null,
-                                    };
-                                },
-                                false,
-                                { type: "COME ALONG, CHILDREN" }
-                            );
-                        },
-                    };
-                }
-                return { ...gameState };
+        abilities: [
+            {
+                type: "triggered",
+                trigger: "play",
+                options: {
+                    zone: "discard",
+                    player: "attacker",
+                    match: { type: "character", cost: 2 },
+                },
+                condition: () => {
+                    return true;
+                },
+                callback: (gameState, selectedCard) => {
+                    const newGameState = selectedCard
+                        ? moveCardToZoneReturnState(
+                              gameState,
+                              "discard",
+                              "field",
+                              selectedCard
+                          )
+                        : { ...gameState };
+                    return { ...newGameState };
+                },
             },
-            quest: (gameState, thisCard, thatCard) => {
-                if (thatCard?.id === thisCard.id) {
-                    const discardedCharacterCards = getAttackerDiscard(
-                        gameState
-                    ).filter(c => c.type === "character");
-
-                    gameState.inputStage = {
-                        type: "play",
-                        options: discardedCharacterCards,
-                        maxSelections: 1,
-                        showDialogue: true,
-                        prompt: "Choose a character to put into your hand",
-                        callback: choice => {
-                            useGameStore.setState(
-                                state => {
-                                    if (
-                                        typeof choice === "string" ||
-                                        Array.isArray(choice)
-                                    ) {
-                                        return state;
-                                    }
-
-                                    const currentPlayerIndex =
-                                        state.currentPlayer;
-
-                                    const updatedHand = [
-                                        ...state.players[currentPlayerIndex]
-                                            .hand,
-                                        choice,
-                                    ];
-
-                                    const updatedDeck = state.players[
-                                        currentPlayerIndex
-                                    ].deck.filter(
-                                        card => card.id !== choice.id
-                                    );
-
-                                    const updatedPlayers = state.players.map(
-                                        (player, index) =>
-                                            index === currentPlayerIndex
-                                                ? {
-                                                      ...player,
-                                                      hand: updatedHand,
-                                                      deck: updatedDeck,
-                                                  }
-                                                : player
-                                    );
-
-                                    return {
-                                        ...state,
-                                        players: updatedPlayers,
-                                        inputStage: null,
-                                    };
-                                },
-                                false,
-                                { type: "COME ALONG, CHILDREN" }
-                            );
-                        },
-                    };
-                }
-                return { ...gameState };
+            {
+                type: "triggered",
+                trigger: "quest",
+                options: {
+                    zone: "discard",
+                    player: "attacker",
+                    match: { type: "character", cost: 2 },
+                },
+                condition: (_, eventCard, thisCard) => {
+                    return eventCard?.id === thisCard.id;
+                },
+                callback: (gameState, selectedCard) => {
+                    const newGameState = selectedCard
+                        ? moveCardToZoneReturnState(
+                              gameState,
+                              "discard",
+                              "field",
+                              selectedCard
+                          )
+                        : { ...gameState };
+                    return { ...newGameState };
+                },
             },
-        }),
+        ],
         staticAbilities: {
             evasive: { active: false },
-            resist: { active: false },
             challenger: { active: false },
+            resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
     },
     {
@@ -461,92 +244,130 @@ const AmberCards: BaseCard[] = [
         set: "ITI",
         rarity: "common",
         modifiers: [],
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({
-            ability: gameState => {
-                const potentialTargets = getDefenderFieldCharacters(gameState);
+        abilities: [
+            {
+                type: "user-initiated",
+                name: "BARK",
+                prompt: "Choose a character to effect",
+                options: {
+                    zone: "field",
+                    player: "defender",
+                    match: { type: "character" },
+                },
+                actionCheck: () => {
+                    return true;
+                },
+                callback: (gameState, selectedCard) => {
+                    selectedCard?.modifiers.push({
+                        type: "challenge",
+                        stat: "willpower",
+                        value: -2,
+                        duration: "until_end_of_next_turn",
+                        turnApplied: gameState.turn,
+                        hasTriggered: false,
+                    });
 
-                gameState.inputStage = {
-                    type: "ability",
-                    options: potentialTargets,
-                    maxSelections: 1,
-                    prompt: "Choose a character to effect",
-                    callback: choice => {
-                        useGameStore.setState(
-                            state => {
-                                if (
-                                    typeof choice === "string" ||
-                                    Array.isArray(choice)
-                                ) {
-                                    return state;
-                                }
-
-                                const currentPlayerIndex = state.currentPlayer;
-
-                                const updatedField = state.players[
-                                    currentPlayerIndex
-                                ].field.map(card =>
-                                    card.id === choice.id
-                                        ? {
-                                              ...card,
-                                              modifiers: card.modifiers.concat([
-                                                  {
-                                                      type: "challenge",
-                                                      stat: "willpower",
-                                                      value: -2,
-                                                      duration:
-                                                          "until_end_of_next_turn",
-                                                      turnApplied:
-                                                          state.turn,
-                                                      hasTriggered: false,
-                                                  },
-                                                  {
-                                                      type: "challenged",
-                                                      stat: "willpower",
-                                                      value: -2,
-                                                      duration:
-                                                          "until_end_of_next_turn",
-                                                      turnApplied:
-                                                          state.turn,
-                                                      hasTriggered: false,
-                                                  },
-                                              ]),
-                                          }
-                                        : card
-                                );
-
-                                const updatedPlayers = state.players.map(
-                                    (player, index) =>
-                                        index === currentPlayerIndex
-                                            ? {
-                                                  ...player,
-                                                  field: updatedField,
-                                              }
-                                            : player
-                                );
-
-                                return {
-                                    ...state,
-                                    players: updatedPlayers,
-                                    inputStage: null,
-                                };
-                            },
-                            false,
-                            { type: "BARK" }
-                        );
-                    },
-                };
-
-                return { ...gameState };
+                    return { ...gameState, inputStage: null };
+                },
             },
-        }),
-        triggers: generateTriggers({}),
+        ],
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+            sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+    },
+    {
+        implemented: false,
+        slug: "goofy-musketeer",
+        url: "https://six-inks.pages.dev/assets/images/cards/EN/001/4.webp",
+        name: "Goofy",
+        title: "Musketeer",
+        characteristics: ["hero", "dreamborn", "musketeer"],
+        text: [
+            "**Bodyguard** _(This character may enter play exerted. An opposing character who challenges one of your characters must choose one with Bodyguard if able.)_",
+            "~~AND TWO FOR TEA!~~ When you play this character, you may remove up to 2 damage from each of your Musketeer characters.",
+        ],
+        type: "character",
+        abilities: [
+            {
+                type: "triggered",
+                trigger: "play",
+                condition: (_, eventCard, thisCard) => {
+                    return eventCard?.id === thisCard.id;
+                },
+                effect: {
+                    type: "heal",
+                    amount: 2,
+                    target: {
+                        type: "character",
+                        owner: "self",
+                    },
+                    filter: {
+                        characteristics: ["musketeer"],
+                    },
+                },
+            },
+        ],
+        flavour: "„En gawrsh!“",
+        inkwell: true,
+        color: "amber",
+        cost: 5,
+        strength: 3,
+        willpower: 6,
+        lore: 1,
+        language: "EN",
+        illustrator: "Jochem Van Gool",
+        number: 4,
+        set: "TFC",
+        rarity: "uncommon",
         staticAbilities: {
             evasive: { active: false },
             resist: { active: false },
             challenger: { active: false },
             sing: { active: true },
+            bodyguard: { active: true },
+            reckless: { active: false },
         },
+        modifiers: [],
+    },
+    {
+        implemented: false,
+        slug: "heihei-boat-snack",
+        url: "https://six-inks.pages.dev/assets/images/cards/EN/001/7.webp",
+        name: "Heihei",
+        title: "Boat Snack",
+        characteristics: ["storyborn", "ally"],
+        text: [
+            "**Support** _(Whenever this character quests, you may add their ※ to another chosen character's ※ this turn.)_",
+        ],
+        type: "character",
+        flavour:
+            "Sometimes, our strengths lie beneath the surface.\x03Far beneath, in some cases. . . .“<br />\x03−Moana",
+        inkwell: true,
+        color: "amber",
+        cost: 1,
+        strength: 1,
+        willpower: 2,
+        lore: 1,
+        language: "EN",
+        illustrator: "Jenna Gray",
+        number: 7,
+        set: "TFC",
+        rarity: "common",
+        abilities: [],
+        staticAbilities: {
+            evasive: { active: false },
+            challenger: { active: false },
+            resist: { active: false },
+            sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+        modifiers: [],
     },
 ];
 

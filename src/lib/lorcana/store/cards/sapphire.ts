@@ -1,10 +1,5 @@
 import { BaseCard } from "../../types/game";
-import {
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
-    getDefenderFieldCharacters,
-} from "../utils/cards";
+import { moveCardToZoneReturnState } from "../actions";
 
 const SapphireCards: BaseCard[] = [
     {
@@ -30,43 +25,39 @@ const SapphireCards: BaseCard[] = [
         number: 147,
         set: "TFC",
         rarity: "legendary",
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({
-            play: gameState => {
-                const options = getDefenderFieldCharacters(gameState);
-
-                if (options.length === 0) {
-                    return { ...gameState };
-                }
-
-                gameState.inputStage = {
-                    type: "play",
-                    prompt: "Choose a character to put into their player's inkwell.",
-                    options: options,
-                    callback: choice => {
-                        if (
-                            typeof choice === "string" ||
-                            Array.isArray(choice)
-                        ) {
-                            return { ...gameState };
-                        }
-
-                        choice.zone = "inkwell";
-                        choice.exerted = true;
-
+        abilities: [
+            {
+                type: "triggered",
+                trigger: "play",
+                condition: (_, eventCard, thisCard) => {
+                    return eventCard?.id === thisCard.id;
+                },
+                options: {
+                    zone: "field",
+                    player: "defender",
+                    match: { type: "character" },
+                },
+                callback: (gameState, selectedCard) => {
+                    if (!selectedCard) {
                         return { ...gameState };
-                    },
-                };
+                    }
 
-                return { ...gameState };
+                    return moveCardToZoneReturnState(
+                        gameState,
+                        "field",
+                        "inkwell",
+                        selectedCard
+                    );
+                },
             },
-        }),
+        ],
         staticAbilities: {
             sing: { active: true },
             challenger: { active: false },
             evasive: { active: false },
             resist: { active: false },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
         inkwell: false,
         modifiers: [],

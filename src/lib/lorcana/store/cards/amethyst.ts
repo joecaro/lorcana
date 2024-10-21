@@ -1,9 +1,6 @@
 import { BaseCard } from "../../types/game";
 import {
     createChallengerText,
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
 } from "../utils/cards";
 
 const AmethystCards: BaseCard[] = [
@@ -28,9 +25,6 @@ const AmethystCards: BaseCard[] = [
         number: 38,
         set: "TFC",
         rarity: "common",
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
         modifiers: [
             {
                 type: "challenge",
@@ -41,11 +35,14 @@ const AmethystCards: BaseCard[] = [
                 hasTriggered: true,
             },
         ],
+        abilities: [],
         staticAbilities: {
             challenger: { active: true, value: 2 },
             evasive: { active: false },
             resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless : { active: false },
         },
     },
 ];

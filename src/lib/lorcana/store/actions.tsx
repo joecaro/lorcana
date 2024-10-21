@@ -1,7 +1,23 @@
 import useGameStore from ".";
 import { executeBotAction } from "../bot";
-import { Action, Card, GameState, Player } from "../types/game";
-import { checkTriggers, drawCard } from "./utils";
+import {
+    Action,
+    Card,
+    Effect,
+    Event,
+    GameState,
+    Player,
+    TriggeredCardAbility,
+    UserInitiatedCardAbility,
+    Zone,
+} from "../types/game";
+import {
+    applyModifiers,
+    canPlayCard,
+    canQuestCard,
+    drawCard,
+    findPotentialTargets,
+} from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const PLAYER_ACTIONS: Record<Action, (...ags: any) => void> = {
@@ -22,15 +38,15 @@ function choosePlayCard() {
     useGameStore.setState(
         gameState => {
             const player = gameState.players[gameState.currentPlayer];
-            const playableCards = player.hand
-                .filter(card => card.cost <= player.availableInk)
-                .filter(
-                    card => card.actionChecks.play(gameState, card) !== null
-                );
 
+            // Filter the playable cards based on available ink
+            const playableCards = player.hand.filter(
+                card => card.cost <= player.availableInk
+            );
+
+            // Set the input stage for selecting a card to play
             gameState.inputStage = {
                 prompt: "Select a card to play:",
-                type: "play",
                 options: playableCards,
                 callback: targetCard => {
                     useGameStore.setState(
@@ -39,13 +55,27 @@ function choosePlayCard() {
                                 typeof targetCard !== "object" ||
                                 Array.isArray(targetCard)
                             ) {
-                                console.error("No valid target for attack.");
+                                console.error("No valid target for playing.");
                                 return gameState;
                             }
 
-                            const newGameState = targetCard.actions.play(
+                            gameState.inputStage = null;
+
+                            const newGameState = moveCardToZoneReturnState(
                                 gameState,
+                                "hand",
+                                "field",
                                 targetCard
+                            );
+
+                            // decrease player available ink
+                            newGameState.players = newGameState.players.map(
+                                p => {
+                                    if (p.id === player.id) {
+                                        p.availableInk -= targetCard.cost;
+                                    }
+                                    return p;
+                                }
                             );
 
                             const resolvedGameState = checkTriggers(
@@ -87,26 +117,15 @@ function chooseQuest() {
     useGameStore.setState(
         gameState => {
             const player = gameState.players[gameState.currentPlayer];
-            const questableCards = player.field.filter(
-                card => card.actionChecks.quest(gameState, card) !== null
-            );
+            const questableCards = player.field.filter(canQuestCard);
 
             gameState.inputStage = {
                 prompt: "Select a card to quest:",
-                type: "quest",
                 options: questableCards,
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (
-                                typeof targetCard !== "object" ||
-                                Array.isArray(targetCard)
-                            ) {
-                                console.error("No valid target for attack.");
-                                return gameState;
-                            }
-
-                            const newGameState = targetCard.actions.quest(
+                            const newGameState = questCard(
                                 gameState,
                                 targetCard
                             );
@@ -131,12 +150,11 @@ function chooseChallenge() {
         gameState => {
             const player = gameState.players[gameState.currentPlayer];
             const challengeableCards = player.field.filter(
-                card => card.actionChecks.challenge(gameState, card) !== null
+                card => card.type === "character" && !card.exerted
             );
 
             gameState.inputStage = {
                 prompt: "Select a card to challenge:",
-                type: "challenge",
                 options: challengeableCards,
                 callback: targetCard => {
                     useGameStore.setState(
@@ -149,7 +167,7 @@ function chooseChallenge() {
                                 return gameState;
                             }
 
-                            const newGameState = targetCard.actions.challenge(
+                            const newGameState = processChallenge(
                                 gameState,
                                 targetCard
                             );
@@ -173,16 +191,19 @@ function chooseAbility() {
     useGameStore.setState(
         gameState => {
             const player = gameState.players[gameState.currentPlayer];
-            const abilityCards = player.field.filter(
-                card => card.actionChecks.ability(gameState, card) !== null
+            const abilityCards = player.field.filter(card =>
+                card.abilities
+                    .filter(a => a.type === "user-initiated")
+                    .some(a => a.actionCheck(gameState, card))
             );
-            const actionCards = player.hand.filter(card => {
-                return card.actionChecks.ability(gameState, card) !== null;
-            });
+            const actionCards = player.hand.filter(card =>
+                card.abilities
+                    .filter(a => a.type === "user-initiated")
+                    .some(a => a.actionCheck(gameState, card))
+            );
 
             gameState.inputStage = {
                 prompt: "Select a card to exert:",
-                type: "ability",
                 options: [...abilityCards, ...actionCards],
                 callback: targetCard => {
                     useGameStore.setState(
@@ -195,12 +216,16 @@ function chooseAbility() {
                                 return gameState;
                             }
 
-                            const newGameState = targetCard.actions.ability(
-                                gameState,
-                                targetCard
+                            const ability = targetCard.abilities.find(
+                                ability => ability.type === "user-initiated"
                             );
 
-                            return { ...newGameState };
+                            if (!ability) {
+                                console.error("No ability found.");
+                                return gameState;
+                            }
+
+                            return { ...processInput(gameState, ability) };
                         },
                         false,
                         { type: `ABILITY CARD` }
@@ -224,12 +249,11 @@ function chooseInkCard() {
         gameState => {
             const player = gameState.players[gameState.currentPlayer];
             const inkableCards = player.hand.filter(
-                card => card.actionChecks.ink(gameState, card) !== null
+                card => card.inkwell && card.zone === "hand"
             );
 
             gameState.inputStage = {
                 prompt: "Select a card to ink:",
-                type: "ink",
                 options: inkableCards,
                 callback: targetCard => {
                     useGameStore.setState(
@@ -242,10 +266,7 @@ function chooseInkCard() {
                                 return gameState;
                             }
 
-                            const newGameState = targetCard.actions.ink(
-                                gameState,
-                                targetCard
-                            );
+                            const newGameState = inkCard(gameState, targetCard);
 
                             return { ...newGameState };
                         },
@@ -296,7 +317,7 @@ function choosePass() {
                 }
                 return p;
             });
-            gameState.phase = "main_phase";
+            gameState.phase = "start_phase";
 
             if (!gameState.players[gameState.currentPlayer].isHuman) {
                 setTimeout(() => {
@@ -312,6 +333,8 @@ function choosePass() {
                 draw: false,
             };
 
+            checkTriggers(gameState, "start_phase", null);
+
             return { ...gameState };
         },
         false,
@@ -319,7 +342,434 @@ function choosePass() {
     );
 }
 
+// ACTION PROCESSOR __________________________________________________________
+function processInput(
+    gameState: GameState,
+    ability: UserInitiatedCardAbility | TriggeredCardAbility
+): GameState {
+    if (!ability || !ability.options) {
+        console.error("No ability found.");
+        return gameState;
+    }
+
+    // Handle multi-part inputs
+    if (
+        ability.type === "user-initiated" &&
+        ability.multiPart &&
+        ability.callback
+    ) {
+        handleMultiPartInput(gameState, ability.multiPart, ability.callback);
+        return gameState;
+    }
+
+    // Set input stage for single-part input
+    const filteredOptions = filterOptions(gameState, ability.options);
+
+    if (filteredOptions.length === 0) {
+        console.error("No valid options for selection.");
+        return { ...gameState, inputStage: null };
+    }
+
+    const inputStage: GameState["inputStage"] = {
+        prompt: ability.prompt || "Select an option",
+        options: filteredOptions,
+        showDialogue: ability.showDialogue,
+        callback: selectedOption => {
+            useGameStore.setState(
+                gameState => {
+                    const newGameState = ability.effect
+                        ? applyEffect(gameState, ability.effect, selectedOption)
+                        : gameState;
+                    return ability.callback
+                        ? ability.callback(newGameState, selectedOption)
+                        : newGameState;
+                },
+                false,
+                { type: `RESOLVED ACTION` }
+            );
+        },
+    };
+
+    return { ...gameState, inputStage };
+}
+
+function handleMultiPartInput(
+    gameState: GameState,
+    multiPart: UserInitiatedCardAbility["multiPart"],
+    finalCallback: (
+        gameState: GameState,
+        selectedOption: Card | null
+    ) => GameState
+): GameState {
+    if (!multiPart) {
+        console.error("No multi-part input found.");
+        return gameState;
+    }
+    const steps = multiPart.steps;
+    let stepIndex = gameState.inputStage?.stepIndex || 0;
+    const currentGameState = { ...gameState };
+
+    // Process a single step and update the state with the next input stage
+    function processStep(currentGameState: GameState): GameState {
+        if (stepIndex >= steps.length) {
+            // All steps are done, execute the final callback
+            return finalCallback(currentGameState, null);
+        }
+
+        const currentStep = steps[stepIndex];
+        const filteredOptions = filterOptions(
+            currentGameState,
+            currentStep.options
+        );
+
+        // Set the next input stage for the current step
+        useGameStore.setState(
+            {
+                inputStage: {
+                    prompt: currentStep.prompt,
+                    options: filteredOptions,
+                    stepIndex, // Track the current step
+                    callback: selectedOption => {
+                        useGameStore.setState(
+                            state => {
+                                // Apply the effect for the current step
+                                const updatedGameState = applyEffect(
+                                    state,
+                                    currentStep.effect,
+                                    selectedOption
+                                );
+
+                                stepIndex++; // Move to the next step
+
+                                // Continue processing the next step or finalize
+                                return processStep(updatedGameState);
+                            },
+                            false,
+                            { type: `RESOLVED STEP ${stepIndex + 1}` }
+                        );
+                    },
+                },
+            },
+            false,
+            { type: `INITIATE MULTI-PART ACTION STEP ${stepIndex + 1}` }
+        );
+
+        return currentGameState;
+    }
+
+    // Start processing the first step and return the final game state
+    return processStep(currentGameState);
+}
+
+function processChallenge(gameState: GameState, thisCard: Card) {
+    if (thisCard.exerted) {
+        console.error(`${thisCard.name} is exerted, cannot attack.`);
+        return gameState;
+    }
+
+    const potentialTargets = findPotentialTargets(gameState, thisCard);
+
+    gameState.inputStage = {
+        prompt: "Select a target to challenge:",
+        options: potentialTargets,
+        callback: targetCard => {
+            useGameStore.setState(
+                state => {
+                    if (
+                        typeof targetCard !== "object" ||
+                        !("willpower" in targetCard)
+                    ) {
+                        console.error("No valid target for challenge.");
+                        return state;
+                    }
+
+                    state.inputStage = null; // SET NULL HERE INCASE TRIGGERS ADD NEW INPUT STAGE
+
+                    state = checkTriggers(state, "challenge", targetCard);
+
+                    // Apply modifiers to the strength and willpower stats before calculating damage
+                    const thisCardStrengthModifier = applyModifiers(
+                        thisCard,
+                        "challenge",
+                        "strength"
+                    );
+                    const thisCardResistModifier = applyModifiers(
+                        thisCard,
+                        "challenge",
+                        "resist"
+                    );
+                    const thisCardWillpowerModifier = applyModifiers(
+                        thisCard,
+                        "challenge",
+                        "willpower"
+                    );
+
+                    const targetCardWillpowerModifier = applyModifiers(
+                        targetCard,
+                        "challenged",
+                        "willpower"
+                    );
+                    const targetCardResistModifier = applyModifiers(
+                        targetCard,
+                        "challenged",
+                        "resist"
+                    );
+                    const targetCardStrengthModifier = applyModifiers(
+                        targetCard,
+                        "challenged",
+                        "strength"
+                    );
+
+                    // Calculate the damage dealt
+                    const damageDealt =
+                        targetCardStrengthModifier +
+                        targetCardResistModifier -
+                        (thisCard.willpower + thisCardWillpowerModifier);
+
+                    // Calculate the damage received
+                    const damageReceived =
+                        thisCardStrengthModifier +
+                        thisCardResistModifier -
+                        (targetCard.willpower + targetCardWillpowerModifier);
+
+                    // Apply the damage to the cards
+                    thisCard.strengthModifier += damageReceived;
+                    targetCard.strengthModifier += damageDealt;
+
+                    // Log the combat result
+                    state.debugLogs.push({
+                        type: "Combat",
+                        attacker: thisCard,
+                        defender: targetCard,
+                    });
+                    console.info("Combat", damageReceived, damageDealt);
+
+                    thisCard.exerted = true;
+
+                    // Remove defeated cards
+                    if (
+                        targetCard.strength + targetCard.strengthModifier <=
+                        0
+                    ) {
+                        state.players = moveToDiscard(state, targetCard);
+                    }
+                    if (thisCard.strength + thisCard.strengthModifier <= 0) {
+                        state.players = moveToDiscard(state, thisCard);
+                    }
+
+                    state.inputStage = null;
+
+                    return { ...state };
+                },
+                false,
+                { type: "challenge", card: thisCard }
+            );
+        },
+    };
+    return gameState;
+}
+
 // HELPER FUNCTIONS __________________________________________________________
+
+function checkTriggers(
+    gameState: GameState,
+    eventType: Event,
+    eventCard: Card | null
+): GameState {
+    gameState.players.forEach(player => {
+        console.groupCollapsed("Triggers");
+        player.field.forEach(card => {
+            // Iterate over the abilities array for each card
+            card.abilities.forEach(ability => {
+                // Check if this ability is a triggered ability and if the trigger matches the event
+                if (
+                    ability.type === "triggered" &&
+                    ability.trigger === eventType
+                ) {
+                    if (!ability.condition(gameState, eventCard, card)) {
+                        console.info(
+                            `Trigger condition not met for ${card.name} on event: ${eventType}`
+                        );
+                        return; // Skip if condition not met
+                    }
+
+                    if (ability.options) {
+                        // If the trigger requires input (target selection), process it
+                        gameState = processInput(gameState, ability);
+                    } else if (ability.effect) {
+                        // Otherwise, apply the effect directly
+                        gameState = applyEffect(
+                            gameState,
+                            ability.effect,
+                            eventCard
+                        );
+                    }
+
+                    console.info(
+                        `Trigger executed for ${card.name} on event: ${eventType}`
+                    );
+                }
+            });
+        });
+        console.groupEnd();
+    });
+
+    return { ...gameState };
+}
+
+// Filter options based on zone and matching criteria
+function filterOptions(
+    gameState: GameState,
+    options: UserInitiatedCardAbility["options"]
+): Card[] {
+    if (!options) {
+        return [];
+    }
+    const { zone, player, match } = options;
+
+    const filteredCards = gameState.players
+        .find(p => p.id === gameState[player])
+        ?.[zone].filter(card => {
+            return Object.keys(match).every(
+                key => card[key as keyof Card] === match[key as keyof Card]
+            );
+        })
+        .slice(0, options.count || Infinity);
+
+    return filteredCards || [];
+}
+
+// Apply effect to the selected card
+function applyEffect(
+    gameState: GameState,
+    effect: Effect,
+    targetCard: Card | null
+): GameState {
+    // Utility to find cards based on target criteria
+    const findTargetCards = (effect: Effect) => {
+        if (!effect.target) return [];
+
+        const currentPlayer = gameState.players[gameState.currentPlayer];
+        const opponentPlayer =
+            gameState.players[(gameState.currentPlayer + 1) % 2];
+
+        let cards: Card[] = [];
+        switch (effect.target.owner) {
+            case "self":
+                cards = currentPlayer.field.filter(card =>
+                    matchCard(card, effect.filter)
+                );
+                break;
+            case "opponent":
+                cards = opponentPlayer.field.filter(card =>
+                    matchCard(card, effect.filter)
+                );
+                break;
+            case "both":
+                cards = [
+                    ...currentPlayer.field.filter(card =>
+                        matchCard(card, effect.filter)
+                    ),
+                    ...opponentPlayer.field.filter(card =>
+                        matchCard(card, effect.filter)
+                    ),
+                ];
+                break;
+            default:
+                break;
+        }
+        return cards;
+    };
+
+    // Helper to match cards based on a filter
+    const matchCard = (card: Card, filter?: Partial<Card>): boolean => {
+        if (!filter) return true;
+        return Object.keys(filter).every(
+            key => card[key as keyof Card] === filter[key as keyof Card]
+        );
+    };
+
+    // Process the effect based on its type
+    switch (effect.type) {
+        case "draw":
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            gameState = drawCard(gameState, effect.amount, currentPlayer.id);
+            break;
+
+        case "damage":
+            const damageTargets = targetCard
+                ? [targetCard]
+                : findTargetCards(effect);
+            damageTargets.forEach(target => {
+                gameState = damageCard(gameState, target, effect.amount);
+            });
+            break;
+
+        case "heal":
+            const healTargets = targetCard
+                ? [targetCard]
+                : findTargetCards(effect);
+            healTargets.forEach(target => {
+                target.strengthModifier += effect.amount;
+            });
+            break;
+
+        case "buff":
+            const buffTargets = targetCard
+                ? [targetCard]
+                : findTargetCards(effect);
+            buffTargets.forEach(target => {
+                if (effect.duration !== "permanent") {
+                    target.modifiers.push({
+                        type: effect.modifierType,
+                        stat: effect.stat,
+                        value: effect.amount,
+                        duration: effect.duration,
+                        hasTriggered: false,
+                        turnApplied: gameState.turn,
+                    });
+                } else {
+                    const statModifier =
+                        effect.stat === "strength"
+                            ? "strengthModifier"
+                            : "willpowerModifier";
+                    target[statModifier] += effect.amount;
+                }
+            });
+            break;
+
+        case "lore":
+            gameState.players[gameState.currentPlayer].lore += effect.amount;
+            break;
+
+        case "play":
+            // Prompt user for input to play a card
+            const availablePlayCards = gameState.players[
+                gameState.currentPlayer
+            ].hand.filter(card => canPlayCard(gameState, card));
+            gameState.inputStage = {
+                prompt: "Select a card to play",
+                options: availablePlayCards,
+                callback: selectedCard => {
+                    if (selectedCard) {
+                        gameState = moveCardToZoneReturnState(
+                            gameState,
+                            "hand",
+                            "field",
+                            selectedCard
+                        );
+                    }
+                },
+            };
+            break;
+
+        default:
+            console.error("Unknown effect type:", effect);
+            break;
+    }
+
+    return { ...gameState, inputStage: null };
+}
 
 export function chooseTarget(gameState: GameState): Card | null {
     const opponent = gameState.players[gameState.currentPlayer === 0 ? 1 : 0];
@@ -337,25 +787,30 @@ export function moveToDiscard(
             );
             player.discard.push({ ...defeatedCard, zone: "discard" });
         }
+
+        checkTriggers(gameState, "discard", defeatedCard);
         return player;
     });
 }
 
 export const shuffleDeck = (playerId: string) => {
-    useGameStore.setState(gameState => {
-        gameState.players.forEach(p =>
-            p.id === playerId
-                ? {
-                      ...p,
-                      deck: shuffle(p.deck),
-                  }
-                : p
-        );
-        return gameState;
-    });
+    useGameStore.setState(
+        gameState => {
+            gameState.players.forEach(p =>
+                p.id === playerId
+                    ? {
+                          ...p,
+                          deck: shuffle(p.deck),
+                      }
+                    : p
+            );
+            return gameState;
+        },
+        false,
+        { type: `SHUFFLE DECK` }
+    );
 };
 
-// Helper function to shuffle an array
 export function shuffle<T>(array: Array<T>): Array<T> {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -370,24 +825,90 @@ export function damageCard(
     card: Card,
     damage: number
 ): GameState {
-    const target =
-        state.players[state.currentPlayer].field.find(
-            c => c.id === card.id
-        ) ||
-        state.players[(state.currentPlayer + 1) % 2].field.find(
-            c => c.id === card.id
-        );
+    const target = findCardInPlay(state, card.id);
     if (!target) return state;
+
     target.strengthModifier -= damage;
+
+    // Check if card should be moved to discard
     if (target.strength + target.strengthModifier <= 0) {
         state.players = moveToDiscard(state, target);
     }
 
     state.inputStage = null;
-
     return { ...state };
 }
 
+export function effectModifier(
+    gameState: GameState,
+    card: Card,
+    stat: "willpower" | "strength" | "lore",
+    amount: number
+) {
+    const target = findCardInPlay(gameState, card.id);
+    if (!target) return gameState;
+
+    // Apply the stat modifier
+    if (stat === "strength") {
+        target.strengthModifier += amount;
+    } else if (stat === "willpower") {
+        target.willpowerModifier += amount;
+    } else if (stat === "lore") {
+        target.loreModifier += amount;
+    }
+
+    // Check if the card needs to be discarded due to 0 strength
+    if (target.strength + target.strengthModifier <= 0) {
+        gameState.players = moveToDiscard(gameState, target);
+    }
+
+    gameState.inputStage = null;
+    return { ...gameState };
+}
+
+function findCardInPlay(gameState: GameState, cardId: string): Card | null {
+    const currentPlayer = gameState.players[gameState.currentPlayer];
+    const opponentPlayer = gameState.players[(gameState.currentPlayer + 1) % 2];
+
+    return (
+        currentPlayer.field.find(card => card.id === cardId) ||
+        opponentPlayer.field.find(card => card.id === cardId) ||
+        null
+    );
+}
+function questCard(gameState: GameState, card: Card): GameState {
+    const player = gameState.players[gameState.currentPlayer];
+    const target = player.field.find(c => c.id === card.id);
+    if (!target) return gameState;
+    target.exerted = true;
+    player.lore += target.lore;
+    gameState.inputStage = null;
+
+    return { ...gameState };
+}
+function inkCard(gameState: GameState, card: Card): GameState {
+    const player = gameState.players[gameState.currentPlayer];
+    const target = player.hand.find(c => c.id === card.id);
+    if (!target) return gameState;
+
+    const movedCardState = moveCardToZoneReturnState(
+        gameState,
+        "hand",
+        "inkwell",
+        target
+    );
+
+    movedCardState.players = movedCardState.players.map(p => {
+        if (p.id === player.id) {
+            p.availableInk += 1;
+        }
+        return p;
+    });
+
+    movedCardState.inputStage = null;
+
+    return { ...movedCardState };
+}
 export function exertCard(state: GameState, card: Card): GameState {
     const player = state.players[state.currentPlayer];
     const target = player.field.find(c => c.id === card.id);
@@ -397,7 +918,27 @@ export function exertCard(state: GameState, card: Card): GameState {
 
     return { ...state };
 }
+export function moveCardToZoneReturnState(
+    state: GameState,
+    sourceZone: Zone,
+    targetZone: Zone,
+    card: Card
+) {
+    const player = state.players.find(p =>
+        p[sourceZone].some(c => c.id === card.id)
+    );
+    if (!player) return state;
 
+    state.players = state.players.map(p => {
+        if (p.id === player.id) {
+            p[sourceZone] = p[sourceZone].filter(c => c.id !== card.id);
+            p[targetZone].push({ ...card, zone: targetZone });
+        }
+        return p;
+    });
+
+    return { ...state };
+}
 export function moveCardToZone(
     sourceZone: "inkwell" | "hand" | "field",
     targetZone: "inkwell" | "hand" | "field",

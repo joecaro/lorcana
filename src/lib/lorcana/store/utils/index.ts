@@ -2,7 +2,6 @@ import useGameStore from "..";
 import {
     Action,
     Card,
-    Event,
     GameState,
     MultipleCardAction,
     Zone,
@@ -61,13 +60,14 @@ export function findPotentialTargets(
 export function findHealableCards(gameState: GameState): Card[] {
     const player = gameState.players[gameState.currentPlayer];
     const healableCards = player.field.filter(
-        card => card.willpower > 0 && card.type !== "character"
+        card =>
+            card.willpower > 0 &&
+            card.type === "character" &&
+            card.strengthModifier < 0
     );
 
     return healableCards;
 }
-
-const excludedActions = ["end_game", "pass", "skip", "cancel", "draw"];
 
 export const computeAvailableActions = (state: GameState) => {
     const player = state.players[state.currentPlayer];
@@ -76,90 +76,69 @@ export const computeAvailableActions = (state: GameState) => {
         return [];
     }
 
-    const handActions = player.hand
-        .flatMap(card => [
-            card.actionChecks.play(state, card),
-            card.actionChecks.ink(state, card),
-            card.actionChecks.ability(state, card),
-        ])
-        .filter(action => action !== null);
+    // Process hand actions (play and ink)
+    const handActions = player.hand.flatMap(card => {
+        const actions = [];
+        if (canPlayCard(state, card)) {
+            actions.push({ type: "play", card });
+        }
+        if (canInkCard(state, card)) {
+            actions.push({ type: "ink", card });
+        }
+        return actions;
+    });
 
-    const fieldActions = player.field
-        .flatMap(card => {
-            return Object.entries(card.actionChecks).map(([key, check]) => {
-                if (
-                    key === "play" ||
-                    key === "ink" ||
-                    excludedActions.includes(key)
-                )
-                    return null;
+    // Process field actions (e.g., challenge)
+    const fieldActions = player.field.flatMap(card => {
+        const actions = [];
+        if (canChallenge(state, card)) {
+            actions.push({ type: "challenge", card });
+        }
+        if (canQuestCard(card)) {
+            actions.push({ type: "quest", card });
+        }
+        if (canUseAbility(state, card)) {
+            actions.push({ type: "ability", card });
+        }
+        // You can add more checks for other field-specific actions here if needed
+        return actions;
+    });
 
-                return check(state, card);
-            });
-        })
-        .filter(action => action !== null);
+    // Combine available actions
+    const available = [...handActions, ...fieldActions];
 
-    const available = [...handActions, ...fieldActions.flat()];
+    // Static actions like pass or cancel
+    const staticActions: MultipleCardAction[] = [{ type: "pass", cards: [] }];
 
-    const staticActions: MultipleCardAction[] = [
-        // { type: "end_game", cards: [] },
-        { type: "pass", cards: [] },
-    ];
-
+    // Merge available actions, grouping by action type
     const newAvailableActions: MultipleCardAction[] = available
         .reduce((acc, action) => {
-            if (action) {
-                if (acc.find(a => a.type === action.type)) {
-                    const existingAction = acc.find(
-                        a => a.type === action.type
-                    );
-                    if (existingAction) {
-                        existingAction.cards.push(action.card);
-                    }
-                } else {
-                    acc.push({ type: action.type, cards: [action.card] });
-                }
+            const existingAction = acc.find(a => a.type === action.type);
+            if (existingAction) {
+                existingAction.cards.push(action.card);
+            } else {
+                acc.push({ type: action.type as Action, cards: [action.card] });
             }
             return acc;
         }, [] as MultipleCardAction[])
         .filter(action => action.cards.length > 0)
         .concat(staticActions);
 
+    // If there is an input stage, allow the player to cancel the action
     if (state.inputStage) {
         newAvailableActions.push({ type: "cancel", cards: [] });
     }
 
+    // Filter out actions that have been performed by non-human players (bots)
     return newAvailableActions.filter(
         action => player.isHuman || !state.turnFlags[action.type]
     );
 };
 
-export function checkTriggers(
-    gameState: GameState,
-    eventType: Event,
-    eventCard: Card
-) {
-    gameState.players.forEach(player => {
-        console.groupCollapsed("Triggers");
-        player.field.forEach(card => {
-            const trigger = card.triggers[eventType];
-            if (trigger) {
-                gameState = trigger(gameState, card, eventCard);
-                console.info(
-                    `Trigger executed for ${card.name} on event: ${eventType}`
-                );
-            }
-        });
-        console.groupEnd();
-    });
-
-    return gameState;
-}
-
 export function applyModifiers(
     card: Card,
     actionType: Action | "challenged",
-    statType: "strength" | "willpower" | "cost"
+    statType: "strength" | "willpower" | "resist" | "cost"
 ): number {
     const currentTurn = useGameStore.getState().turn;
 
@@ -200,4 +179,44 @@ export function applyModifiers(
     return applicableModifiers
         ? applicableModifiers.reduce((total, mod) => total + mod.value, 0)
         : 0;
+}
+
+export function canPlayCard(gameState: GameState, card: Card): boolean {
+    const currentPlayer = gameState.players[gameState.currentPlayer];
+    return (
+        card.zone === "hand" &&
+        currentPlayer.availableInk >= card.cost &&
+        !card.exerted // Optional: add other conditions if needed
+    );
+}
+
+export function canInkCard(gameState: GameState, card: Card): boolean {
+    return card.zone === "hand" && !card.exerted && card.inkwell;
+}
+
+export function canQuestCard(card: Card): boolean {
+    return card.zone === "field" && !card.exerted && !!card.lore;
+}
+
+export function canUseAbility(gameState: GameState, card: Card): boolean {
+    return (
+        card.zone === "field" &&
+        !card.exerted &&
+        card.abilities.some(
+            ability =>
+                ability.type === "user-initiated" &&
+                ability.actionCheck(gameState, card)
+        )
+    );
+}
+
+export function canChallenge(gameState: GameState, card: Card): boolean {
+    const opponentPlayer = gameState.players[(gameState.currentPlayer + 1) % 2];
+
+    // Card must be on the field, not exerted, and there must be valid targets
+    return (
+        card.zone === "field" &&
+        !card.exerted &&
+        opponentPlayer.field.some(opponentCard => !opponentCard.exerted)
+    );
 }

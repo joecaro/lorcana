@@ -1,10 +1,5 @@
 import { BaseCard } from "../../types/game";
-import {
-    evasiveText,
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
-} from "../utils/cards";
+import { evasiveText } from "../utils/cards";
 
 const RubyCards: BaseCard[] = [
     {
@@ -29,15 +24,15 @@ const RubyCards: BaseCard[] = [
         number: 120,
         set: "TFC",
         rarity: "common",
-        actionChecks: generateActionChecks({}),
-        actions: generateActions({}),
-        triggers: generateTriggers({}),
+        abilities: [],
         modifiers: [],
         staticAbilities: {
             challenger: { active: false },
             evasive: { active: true },
             resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
     },
 ];
