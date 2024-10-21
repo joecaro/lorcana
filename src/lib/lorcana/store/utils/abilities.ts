@@ -14,6 +14,7 @@ export const drawXCardOnPlay = (num: number): TriggeredCardAbility => ({
 
 export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
     type: "triggered",
+    prompt: "Choose a character to deal damage to",
     trigger: "play",
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,
     options: {
@@ -39,6 +40,7 @@ export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
 
 export const healXDamageOnPlay = (num: number): TriggeredCardAbility => ({
     type: "triggered",
+    prompt: "Choose a character to heal",
     trigger: "play",
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,
     options: {
@@ -63,6 +65,7 @@ export const chooseCardFromZonToZone = (
     trigger: TriggeredCardAbility["trigger"]
 ): TriggeredCardAbility => ({
     type: "triggered",
+    prompt: `Choose a card to move from ${fromZone} to ${toZone}`,
     trigger: trigger,
     options: {
         zone: fromZone,

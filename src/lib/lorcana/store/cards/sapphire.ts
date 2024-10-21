@@ -28,6 +28,7 @@ const SapphireCards: BaseCard[] = [
         abilities: [
             {
                 type: "triggered",
+                prompt: "Choose a character to put into their player's inkwell.",
                 trigger: "play",
                 condition: (_, eventCard, thisCard) => {
                     return eventCard?.id === thisCard.id;

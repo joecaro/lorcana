@@ -9,6 +9,7 @@ import {
     Player,
     TriggeredCardAbility,
     UserInitiatedCardAbility,
+    UserInitiatedInteractiveCardAbility,
     Zone,
 } from "../types/game";
 import {
@@ -17,6 +18,10 @@ import {
     canQuestCard,
     drawCard,
     findPotentialTargets,
+    isAbility,
+    isCard,
+    isEffectAbility,
+    isInputAbility,
 } from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,10 +56,7 @@ function choosePlayCard() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (
-                                typeof targetCard !== "object" ||
-                                Array.isArray(targetCard)
-                            ) {
+                            if (!isCard(targetCard)) {
                                 console.error("No valid target for playing.");
                                 return gameState;
                             }
@@ -125,6 +127,10 @@ function chooseQuest() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
+                            if (!isCard(targetCard)) {
+                                console.error("No valid target for quest.");
+                                return gameState;
+                            }
                             const newGameState = questCard(
                                 gameState,
                                 targetCard
@@ -159,10 +165,7 @@ function chooseChallenge() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (
-                                typeof targetCard !== "object" ||
-                                Array.isArray(targetCard)
-                            ) {
+                            if (!isCard(targetCard)) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -208,24 +211,23 @@ function chooseAbility() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (
-                                typeof targetCard !== "object" ||
-                                Array.isArray(targetCard)
-                            ) {
+                            if (!isCard(targetCard)) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
 
-                            const ability = targetCard.abilities.find(
+                            const abilities = targetCard.abilities.filter(
                                 ability => ability.type === "user-initiated"
                             );
 
-                            if (!ability) {
+                            if (abilities.length == 0) {
                                 console.error("No ability found.");
                                 return gameState;
                             }
 
-                            return { ...processInput(gameState, ability) };
+                            return {
+                                ...promptAbilities(gameState, targetCard),
+                            };
                         },
                         false,
                         { type: `ABILITY CARD` }
@@ -239,7 +241,6 @@ function chooseAbility() {
         { type: `INITIATE ABILITY CARD` }
     );
 }
-
 function chooseSing() {
     // TODO: Implement
 }
@@ -258,10 +259,7 @@ function chooseInkCard() {
                 callback: targetCard => {
                     useGameStore.setState(
                         gameState => {
-                            if (
-                                typeof targetCard !== "object" ||
-                                Array.isArray(targetCard)
-                            ) {
+                            if (!isCard(targetCard)) {
                                 console.error("No valid target for attack.");
                                 return gameState;
                             }
@@ -342,27 +340,64 @@ function choosePass() {
     );
 }
 
+function promptAbilities(gameState: GameState, card: Card) {
+    const abilities = card.abilities.filter(
+        ability => ability.type === "user-initiated"
+    );
+
+    const filteredAbilities = abilities.filter(ability =>
+        ability.actionCheck(gameState, card)
+    );
+
+    gameState.inputStage = {
+        prompt: "Select an ability to use:",
+        options: filteredAbilities,
+        showDialogue: true,
+        callback: selectedOption => {
+            useGameStore.setState(
+                gameState => {
+                    if (!selectedOption || !isInputAbility(selectedOption)) {
+                        console.error("No valid option selected.");
+                        return gameState;
+                    }
+
+                    return processInput(gameState, card, selectedOption);
+                },
+                false,
+                { type: `MULTIPLE ABILITIES` }
+            );
+        },
+    };
+
+    return { ...gameState };
+}
+
 // ACTION PROCESSOR __________________________________________________________
 function processInput(
     gameState: GameState,
+    card: Card,
     ability: UserInitiatedCardAbility | TriggeredCardAbility
 ): GameState {
-    if (!ability || !ability.options) {
+    if (!ability) {
         console.error("No ability found.");
         return gameState;
     }
 
     // Handle multi-part inputs
-    if (
-        ability.type === "user-initiated" &&
-        ability.multiPart &&
-        ability.callback
-    ) {
-        handleMultiPartInput(gameState, ability.multiPart, ability.callback);
+    if (isInputAbility(ability) && "multiPart" in ability) {
+        handleMultiPartInput(
+            gameState,
+            ability.multiPart,
+            ability.callback,
+            card
+        );
         return gameState;
     }
 
-    // Set input stage for single-part input
+    if (isEffectAbility(ability)) {
+        return applyEffect(gameState, ability.effect, card);
+    }
+
     const filteredOptions = filterOptions(gameState, ability.options);
 
     if (filteredOptions.length === 0) {
@@ -373,16 +408,18 @@ function processInput(
     const inputStage: GameState["inputStage"] = {
         prompt: ability.prompt || "Select an option",
         options: filteredOptions,
-        showDialogue: ability.showDialogue,
+        showDialogue: ability.showDialog,
         callback: selectedOption => {
             useGameStore.setState(
                 gameState => {
-                    const newGameState = ability.effect
-                        ? applyEffect(gameState, ability.effect, selectedOption)
-                        : gameState;
+                    if (!isCard(selectedOption)) {
+                        console.error("Invalid option selected.");
+                        return gameState;
+                    }
+                    
                     return ability.callback
-                        ? ability.callback(newGameState, selectedOption)
-                        : newGameState;
+                        ? ability.callback(gameState, selectedOption, card)
+                        : gameState;
                 },
                 false,
                 { type: `RESOLVED ACTION` }
@@ -395,11 +432,13 @@ function processInput(
 
 function handleMultiPartInput(
     gameState: GameState,
-    multiPart: UserInitiatedCardAbility["multiPart"],
+    multiPart: UserInitiatedInteractiveCardAbility["multiPart"],
     finalCallback: (
         gameState: GameState,
-        selectedOption: Card | null
-    ) => GameState
+        selectedOption: Card | null,
+        card: Card
+    ) => GameState,
+    card: Card
 ): GameState {
     if (!multiPart) {
         console.error("No multi-part input found.");
@@ -413,7 +452,7 @@ function handleMultiPartInput(
     function processStep(currentGameState: GameState): GameState {
         if (stepIndex >= steps.length) {
             // All steps are done, execute the final callback
-            return finalCallback(currentGameState, null);
+            return finalCallback(currentGameState, null, card);
         }
 
         const currentStep = steps[stepIndex];
@@ -432,6 +471,10 @@ function handleMultiPartInput(
                     callback: selectedOption => {
                         useGameStore.setState(
                             state => {
+                                if (!isCard(selectedOption)) {
+                                    console.error("Invalid option selected.");
+                                    return state;
+                                }
                                 // Apply the effect for the current step
                                 const updatedGameState = applyEffect(
                                     state,
@@ -593,9 +636,9 @@ function checkTriggers(
                         return; // Skip if condition not met
                     }
 
-                    if (ability.options) {
+                    if (isInputAbility(ability)) {
                         // If the trigger requires input (target selection), process it
-                        gameState = processInput(gameState, ability);
+                        gameState = processInput(gameState, card, ability);
                     } else if (ability.effect) {
                         // Otherwise, apply the effect directly
                         gameState = applyEffect(
@@ -620,7 +663,7 @@ function checkTriggers(
 // Filter options based on zone and matching criteria
 function filterOptions(
     gameState: GameState,
-    options: UserInitiatedCardAbility["options"]
+    options: UserInitiatedInteractiveCardAbility["options"]
 ): Card[] {
     if (!options) {
         return [];
@@ -751,7 +794,7 @@ function applyEffect(
                 prompt: "Select a card to play",
                 options: availablePlayCards,
                 callback: selectedCard => {
-                    if (selectedCard) {
+                    if (isCard(selectedCard)) {
                         gameState = moveCardToZoneReturnState(
                             gameState,
                             "hand",

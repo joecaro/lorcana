@@ -316,7 +316,7 @@ const cards: BaseCard[] = [
                     count: 3,
                 },
                 prompt: "Choose a card to move to your hand",
-                showDialogue: true,
+                showDialog: true,
                 callback: (gameState, selectedCard) => {
                     if (selectedCard) {
                         gameState = moveCardToZoneReturnState(
@@ -667,7 +667,7 @@ const cards: BaseCard[] = [
                     if (!baseAbilityCheck(gameState, thisCard)) {
                         return false;
                     }
-                    
+
                     return getDefenderFieldCharacters(gameState).length > 0;
                 },
                 options: {
@@ -720,7 +720,58 @@ const cards: BaseCard[] = [
         willpower: 1,
         lore: 1,
         inkwell: true,
-        abilities: [],
+        abilities: [
+            {
+                type: "user-initiated",
+                name: "Beach Zoomies",
+                prompt: "Choose a character to damage",
+                options: {
+                    match: { type: "character" },
+                    player: "defender",
+                    zone: "field",
+                },
+                actionCheck: (gameState, thisCard) => {
+                    if (!baseAbilityCheck(gameState, thisCard)) {
+                        return false;
+                    }
+
+                    return getDefenderFieldCharacters(gameState).length > 0;
+                },
+                callback: (gameState, selectedCard, thisCard) => {
+                    return selectedCard
+                        ? {
+                              ...damageCard(
+                                  damageCard(gameState, selectedCard, 3),
+                                  thisCard,
+                                  1
+                              ),
+                              inputStage: null,
+                          }
+                        : { ...gameState, inputStage: null };
+                },
+            },
+            {
+                type: "user-initiated",
+                name: "Sleep",
+                actionCheck: (gameState, thisCard) => {
+                    if (!baseAbilityCheck(gameState, thisCard)) {
+                        return false;
+                    }
+
+                    return thisCard.strengthModifier < 0;
+                },
+                options: {
+                    match: { name: "Sora" },
+                    player: "attacker",
+                    zone: "field",
+                },
+                effect: {
+                    type: "heal",
+                    amount: 1,
+                    target: { type: "character", owner: "self", self: true },
+                }
+            },
+        ],
         staticAbilities: {
             evasive: { active: false },
             challenger: { active: false },

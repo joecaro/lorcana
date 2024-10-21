@@ -2,8 +2,13 @@ import useGameStore from "..";
 import {
     Action,
     Card,
+    CardAbility,
     GameState,
     MultipleCardAction,
+    TriggeredEffectCardAbility,
+    TriggeredInteractiveCardAbility,
+    UserInitiatedEffectCardAbility,
+    UserInitiatedInteractiveCardAbility,
     Zone,
 } from "../../types/game";
 import { getDefenderFieldCharacters } from "./cards";
@@ -218,5 +223,33 @@ export function canChallenge(gameState: GameState, card: Card): boolean {
         card.zone === "field" &&
         !card.exerted &&
         opponentPlayer.field.some(opponentCard => !opponentCard.exerted)
+    );
+}
+
+export function isCard(card: any): card is Card {
+    return card && card.name && card.type && card.zone;
+}
+
+export function isAbility(ability: any): ability is CardAbility {
+    return ability && ability.type;
+}
+
+export function isInputAbility(
+    ability: any
+): ability is UserInitiatedInteractiveCardAbility | TriggeredInteractiveCardAbility {
+    return (
+        isAbility(ability) &&
+        (ability.type === "user-initiated" || ability.type === "triggered") &&
+        "options" in ability
+    );
+}
+
+export function isEffectAbility(
+    ability: any
+): ability is UserInitiatedEffectCardAbility | TriggeredEffectCardAbility {
+    return (
+        isAbility(ability) &&
+        (ability.type === "user-initiated" || ability.type === "triggered") &&
+        "effect" in ability
     );
 }

@@ -12,11 +12,11 @@ export type GameState = {
     debugLogs: Record<string, unknown>[];
     inputStage: {
         prompt: string;
-        options: Card[];
+        options: Card[] | CardAbility[];
         maxSelections?: number;
         showDialogue?: boolean;
         stepIndex?: number;
-        callback: (choice: Card) => void;
+        callback: (choice: Card | CardAbility) => void;
     } | null;
     turnFlags: Partial<Record<Action, boolean>>;
     initializeParamPlayers: (players: ParamPlayer[]) => void;
@@ -46,7 +46,6 @@ export type Player = {
     isHuman: boolean;
 };
 
-// Modifiers for temporary or permanent effects on cards
 export type Modifier = {
     type: Action | "challenged";
     stat: "strength" | "willpower" | "cost" | "resist";
@@ -61,7 +60,6 @@ export type Modifier = {
     hasTriggered: boolean;
 };
 
-// Static abilities that are always active on the card
 export type StaticAbility =
     | "bodyguard"
     | "evasive"
@@ -76,6 +74,7 @@ type BaseEffect = {
     target?: {
         type: "character" | "card";
         owner: "self" | "opponent" | "both";
+        self?: boolean;
     };
     filter?: Partial<Card>;
 };
@@ -113,7 +112,6 @@ type PlayEffect = BaseEffect & {
     type: "play";
 };
 
-// Card effect structure for dynamic abilities
 export type Effect =
     | DrawEffect
     | DamageEffect
@@ -125,11 +123,10 @@ export type Effect =
 export type InputOptions = {
     zone: Zone;
     player: "attacker" | "defender";
-    match: Partial<Card>; // Match criteria for selecting cards
-    count?: number; // Number of cards to select
+    match: Partial<Card>;
+    count?: number;
 };
 
-// Multi-step abilities where multiple inputs are required
 export type MultiPartStep = {
     prompt: string;
     options: InputOptions;
@@ -140,15 +137,30 @@ export type MultiPart = {
     steps: MultiPartStep[];
 };
 
-// Unified ability structure for all types of abilities (static, triggered, user-initiated)
+type EffectOnly = {
+    effect: Effect;
+};
+
+type Interactive = {
+    prompt: string;
+    options: InputOptions;
+    callback: (
+        gameState: GameState,
+        selectedOption: Card | null,
+        thisCard: Card
+    ) => GameState;
+    showDialog?: boolean;
+    multiPart?: MultiPart;
+};
+
 type StaticCardAbility = {
     type: "static";
     name: string;
     active: boolean;
-    effect?: Effect; // The effect applied by the ability (if any)
+    effect?: Effect;
 };
 
-export type TriggeredCardAbility = {
+type BaseTriggeredCardAbility = {
     type: "triggered";
     trigger: Event;
     condition: (
@@ -156,24 +168,29 @@ export type TriggeredCardAbility = {
         eventCard: Card | null,
         thisCard: Card
     ) => boolean;
-    effect?: Effect;
-    prompt?: string;
-    options?: InputOptions;
-    showDialogue?: boolean;
-    callback?: (gameState: GameState, selectedCard: Card | null) => GameState;
 };
 
-export type UserInitiatedCardAbility = {
+export type TriggeredEffectCardAbility = BaseTriggeredCardAbility & EffectOnly;
+
+export type TriggeredInteractiveCardAbility = BaseTriggeredCardAbility & Interactive;
+
+export type TriggeredCardAbility =
+    | TriggeredEffectCardAbility
+    | TriggeredInteractiveCardAbility;
+
+export type BaseUserInitiatedCardAbility = {
     type: "user-initiated";
     name: string;
     actionCheck: (gameState: GameState, thisCard: Card) => boolean;
-    effect?: Effect;
-    prompt: string;
-    options: InputOptions;
-    showDialogue?: boolean;
-    callback?: (gameState: GameState, selectedCard: Card | null) => GameState & { inputStage: null };
-    multiPart?: MultiPart;
 };
+
+export type UserInitiatedEffectCardAbility = BaseUserInitiatedCardAbility & EffectOnly;
+
+export type UserInitiatedInteractiveCardAbility = BaseUserInitiatedCardAbility & Interactive;
+
+export type UserInitiatedCardAbility =
+    | UserInitiatedEffectCardAbility
+    | UserInitiatedInteractiveCardAbility;
 
 export type CardAbility =
     | StaticCardAbility

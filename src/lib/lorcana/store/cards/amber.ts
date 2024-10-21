@@ -166,6 +166,7 @@ const AmberCards: BaseCard[] = [
         abilities: [
             {
                 type: "triggered",
+                prompt: 'Play a character with cost 2 or less from your discard for free.',
                 trigger: "play",
                 options: {
                     zone: "discard",
@@ -189,6 +190,7 @@ const AmberCards: BaseCard[] = [
             },
             {
                 type: "triggered",
+                prompt: 'Play a character with cost 2 or less from your discard for free.',
                 trigger: "quest",
                 options: {
                     zone: "discard",

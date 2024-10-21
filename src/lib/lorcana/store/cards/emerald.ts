@@ -26,60 +26,10 @@ const EmeraldCards: BaseCard[] = [
         number: 74,
         set: "TFC",
         rarity: "uncommon",
-        //     challenge: (gameState, thisCard, thatCard) => {
-        //         if (
-        //             thisCard.id !== thatCard?.id ||
-        //             thatCard.owner === gameState.attacker
-        //         )
-        //             return gameState;
-
-        //         const options = getAttackerFieldCharacters(gameState);
-
-        //         if (options.length === 0) return gameState;
-
-        //         gameState.inputStage = {
-        //             type: "discard",
-        //             prompt: `Choose a card to discard`,
-        //             options: options,
-        //             callback: choice => {
-        //                 useGameStore.setState(state => {
-        //                     if (
-        //                         typeof choice === "string" ||
-        //                         Array.isArray(choice) ||
-        //                         !getAttackerDiscard(state).find(
-        //                             c => c.id === choice.id
-        //                         )
-        //                     ) {
-        //                         console.error("Invalid choice:", choice);
-        //                         return { ...state, inputStage: null };
-        //                     }
-
-        //                     const updatedPlayers = state.players.map(p => {
-        //                         if (p.id === gameState.attacker) {
-        //                             p.field = p.field.filter(c =>
-        //                                 c.id === choice.id ? false : true
-        //                             );
-        //                             p.discard.push(choice);
-        //                         }
-
-        //                         return p;
-        //                     });
-
-        //                     return {
-        //                         ...state,
-        //                         players: updatedPlayers,
-        //                         inputStage: null,
-        //                     };
-        //                 });
-        //             },
-        //         };
-
-        //         return { ...gameState };
-        //     },
-        // }),
         abilities: [
             {
                 type: "triggered",
+                prompt: "Choose a card to discard",
                 trigger: "challenge",
                 condition: (_, eventCard, thisCard) => {
                     return eventCard?.id === thisCard.id;
