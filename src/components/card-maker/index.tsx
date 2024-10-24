@@ -115,7 +115,7 @@ const GameCard: React.FC<CardProps> = props => {
                 props.className
             )}
         >
-            <div className='flex flex-col flex-grow font-manrope'>
+            <div className='flex flex-col flex-1 h-full font-manrope'>
                 {/* Cost */}
                 <div
                     className={cn(
@@ -137,7 +137,7 @@ const GameCard: React.FC<CardProps> = props => {
                 </div>
 
                 {/* Image */}
-                <div className='h-[80px] bg-gray-50'>
+                <div className='h-[80px] flex-1 basis-[80px] bg-gray-50'>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         className='h-full w-full object-center object-cover'
@@ -150,11 +150,11 @@ const GameCard: React.FC<CardProps> = props => {
 
                 {/* Name */}
                 <div
-                    className={[
-                        "flex justify-between relative",
+                    className={cn(
+                        "flex justify-between relative flex-1",
                         lightColor,
-                        props.hideCardDetails && "hidden",
-                    ].join(" ")}
+                        props.hideCardDetails && "hidden"
+                    )}
                 >
                     <div className='flex flex-col items-start p-[0.1rem]'>
                         <div className='font-medium text-[7px]'>

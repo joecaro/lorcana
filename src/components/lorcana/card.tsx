@@ -35,8 +35,9 @@ const CardComp: React.FC<{
     hideCardDetails?: boolean;
     square?: boolean;
     onClick?: () => void;
+    hoverScale?: number;
     style?: AnimationControls | TargetAndTransition;
-}> = ({ card, hideCardDetails, square, onClick, style }) => {
+}> = ({ card, hideCardDetails, square, hoverScale, onClick, style }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({ id: card.id });
 
@@ -196,7 +197,7 @@ const CardComp: React.FC<{
                 WebkitUserSelect: "none",
             }}
             whileHover={{
-                scale: 2.2,
+                scale: hoverScale || 2.2,
                 height: "10rem",
                 zIndex: 999999,
                 rotateX: rotation.rotateX,

@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Minus, Plus } from "lucide-react";
 import useGameStore from "@/lib/lorcana/store";
-import { GameCard } from "../card-maker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DeckStats from "./deck-stats";
+import CardComp from "./card";
 
 type PlayerDeck = { [key: string]: number };
 
@@ -85,7 +85,7 @@ export function GameSetupComponent() {
                     className='my-2'
                     onChange={e => setCardSearch(e.currentTarget.value)}
                 />
-                <div className='h-80 overflow-y-auto grid grid-cols-2 gap-2'>
+                <div className='h-80 overflow-y-scroll grid grid-cols-2 gap-2'>
                     {cards
                         .filter(
                             card =>
@@ -97,26 +97,15 @@ export function GameSetupComponent() {
                                     .includes(cardSearch.toLowerCase())
                         )
                         .map(card => (
-                            <Button
+                            <CardComp
                                 key={card.slug}
+                                // @ts-expect-error - CardComp expects a GameCard but we just need ui
+                                card={card}
+                                hoverScale={1.1}
                                 onClick={() =>
                                     handleCardSelect(player, card.slug)
                                 }
-                                className='h-40 w-28 p-0'
-                            >
-                                <GameCard
-                                    {...card}
-                                    id=''
-                                    owner=''
-                                    exerted={false}
-                                    zone='hand'
-                                    turnPlayed={0}
-                                    strengthModifier={0}
-                                    willpowerModifier={0}
-                                    loreModifier={0}
-                                    isFoil={false}
-                                />
-                            </Button>
+                            />
                         ))}
                 </div>
             </div>
