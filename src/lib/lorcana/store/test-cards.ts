@@ -33,8 +33,7 @@ const cards: BaseCard[] = [
             "~~Rainey Day~~ ↷: Heal 1 damage for target character.",
         ],
         type: "character",
-        flavour:
-            "Rainey is a gentle fetcher, always ready to lend a helping paw.",
+        flavor: "Rainey is a gentle fetcher, always ready to lend a helping paw.",
         inkwell: true,
         color: "amber",
         cost: 2,
@@ -59,8 +58,8 @@ const cards: BaseCard[] = [
             {
                 type: "triggered",
                 trigger: "play",
-                condition: (gameState, _, thisCard) =>
-                    !!thisCard && gameState.attacker === thisCard.owner,
+                condition: (_, eventCard, thisCard) =>
+                    eventCard?.id === thisCard.id,
                 effect: {
                     type: "draw",
                     amount: 1, // Draw 1 card
@@ -74,7 +73,7 @@ const cards: BaseCard[] = [
                 prompt: "Choose a character to heal",
                 options: {
                     zone: "field",
-                    player: "attacker",
+                    player: "self",
                     match: { type: "character" },
                 },
                 actionCheck: (gameState, thisCard) => {
@@ -83,7 +82,6 @@ const cards: BaseCard[] = [
                     }
                     const healableCards = findHealableCards(gameState);
                     if (healableCards.length === 0) {
-                        console.info("No healable cards");
                         return false;
                     }
                     return true;
@@ -112,8 +110,7 @@ const cards: BaseCard[] = [
             "~~Stormborn~~ - This character gains +1 willpower when challenging.",
         ],
         type: "character",
-        flavour:
-            "The Storm Enchanter is a master of the elements, able to command the very skies.",
+        flavor: "The Storm Enchanter is a master of the elements, able to command the very skies.",
         inkwell: true,
         color: "amethyst",
         cost: 5,
@@ -156,8 +153,7 @@ const cards: BaseCard[] = [
             "~~Life Drain~~ - Sacrifice 2 strength from an allied character to deal 4 damage to an enemy character.",
         ],
         type: "action",
-        flavour:
-            "The price of power is always steep, demanding sacrifice for greater destruction.",
+        flavor: "The price of power is always steep, demanding sacrifice for greater destruction.",
         inkwell: false,
         color: "amethyst",
         cost: 5,
@@ -171,7 +167,7 @@ const cards: BaseCard[] = [
                 prompt: "Choose a character to sacrifice",
                 options: {
                     zone: "field",
-                    player: "attacker",
+                    player: "self",
                     match: { type: "character" },
                 },
                 actionCheck: (gameState, thisCard) => {
@@ -203,7 +199,7 @@ const cards: BaseCard[] = [
                             prompt: "Choose a character to damage",
                             options: {
                                 zone: "field",
-                                player: "defender",
+                                player: "opponent",
                                 match: { type: "character" },
                             },
                         },
@@ -237,8 +233,7 @@ const cards: BaseCard[] = [
             "~~Radiant Light~~ - All allies gain +1 lore while this item remains on the field.",
         ],
         type: "item",
-        flavour:
-            "A guiding light from the heavens, shining hope upon all who see it.",
+        flavor: "A guiding light from the heavens, shining hope upon all who see it.",
         inkwell: true,
         color: "sapphire",
         cost: 4,
@@ -295,8 +290,7 @@ const cards: BaseCard[] = [
             "~~Warning Call~~ - When this character is played, look at the top 3 cards of your deck and move one to your hand.",
         ],
         type: "character",
-        flavour:
-            "Quick to find and quicker to warn, the Elven Scout is always one step ahead.",
+        flavor: "Quick to find and quicker to warn, the Elven Scout is always one step ahead.",
         inkwell: true,
         color: "emerald",
         cost: 2,
@@ -312,7 +306,7 @@ const cards: BaseCard[] = [
                 options: {
                     match: { type: "character" },
                     zone: "deck",
-                    player: "attacker",
+                    player: "self",
                     count: 3,
                 },
                 prompt: "Choose a card to move to your hand",
@@ -355,8 +349,7 @@ const cards: BaseCard[] = [
         characteristics: ["storyborn", "knight"],
         text: [`~~Valor~~ - Charcter gains ${createChallengerText(1)}`],
         type: "character",
-        flavour:
-            "The Knight of Valor is a noble warrior, always ready to defend the innocent.",
+        flavor: "The Knight of Valor is a noble warrior, always ready to defend the innocent.",
         inkwell: true,
         color: "amber",
         cost: 3,
@@ -399,8 +392,7 @@ const cards: BaseCard[] = [
             "~~Empower~~ - Exert this item to give a friendly character +3 willpower for this turn.",
         ],
         type: "item",
-        flavour:
-            "The edge of this blade thirsts for battle, igniting its wielder’s fury.",
+        flavor: "The edge of this blade thirsts for battle, igniting its wielder’s fury.",
         inkwell: false,
         color: "ruby",
         cost: 3,
@@ -414,7 +406,7 @@ const cards: BaseCard[] = [
                 prompt: "Choose a character to empower",
                 options: {
                     zone: "field",
-                    player: "attacker",
+                    player: "self",
                     match: { type: "character" },
                 },
                 actionCheck: (gameState, thisCard) => {
@@ -462,8 +454,7 @@ const cards: BaseCard[] = [
             "~~Rooted Defense~~ - All friendly characters gain Resist +1 as long as this character is on the field.",
         ],
         characteristics: ["storyborn", "guardian"],
-        flavour:
-            "A silent sentinel of nature, unwavering in its protection of the land.",
+        flavor: "A silent sentinel of nature, unwavering in its protection of the land.",
         type: "character",
         inkwell: true,
         color: "emerald",
@@ -513,8 +504,7 @@ const cards: BaseCard[] = [
             "**Evasive** - Only characters with Evasive can challenge this character.",
         ],
         type: "character",
-        flavour:
-            "The Arcane Aprentice is a young mage, eager to learn the secrets of the universe.",
+        flavor: "The Arcane Aprentice is a young mage, eager to learn the secrets of the universe.",
         inkwell: true,
         color: "amber",
         cost: 2,
@@ -548,8 +538,7 @@ const cards: BaseCard[] = [
             "~~Fiery Plume~~ - When this character enters play, deal 1 damage to target character.",
         ],
         type: "character",
-        flavour:
-            "Only those who have seen the flames of the Phoenix can truly understand the power of the Fireborn.",
+        flavor: "Only those who have seen the flames of the Phoenix can truly understand the power of the Fireborn.",
         inkwell: true,
         color: "amber",
         cost: 4,
@@ -585,8 +574,7 @@ const cards: BaseCard[] = [
             "~~Teef~~ - ↷: Take 1 ITEM from any player",
         ],
         type: "character",
-        flavour:
-            "The Beacon is a loyal companion, always ready to lend a helping paw.",
+        flavor: "The Beacon is a loyal companion, always ready to lend a helping paw.",
         inkwell: true,
         color: "amber",
         cost: 4,
@@ -601,7 +589,7 @@ const cards: BaseCard[] = [
                 prompt: "Choose an item to steal",
                 options: {
                     zone: "field",
-                    player: "defender",
+                    player: "opponent",
                     match: { type: "item" },
                 },
                 actionCheck: (gameState, thisCard) => {
@@ -651,7 +639,7 @@ const cards: BaseCard[] = [
         characteristics: [],
         text: ["~~Lick Feet~~ ↷ Gross out 1 character and deal 1 damage"],
         type: "character",
-        flavour: "",
+        flavor: "",
         color: "emerald",
         cost: 2,
         strength: 2,
@@ -672,7 +660,7 @@ const cards: BaseCard[] = [
                 },
                 options: {
                     match: { type: "character" },
-                    player: "defender",
+                    player: "opponent",
                     zone: "field",
                 },
                 callback: (gameState, selectedCard) => {
@@ -713,7 +701,7 @@ const cards: BaseCard[] = [
             // "~~Sleep~~ ↷ to heal 1 strength.",
         ],
         type: "character",
-        flavour: "",
+        flavor: "",
         color: "steel",
         cost: 1,
         strength: 6,
@@ -727,7 +715,7 @@ const cards: BaseCard[] = [
                 prompt: "Choose a character to damage",
                 options: {
                     match: { type: "character" },
-                    player: "defender",
+                    player: "opponent",
                     zone: "field",
                 },
                 actionCheck: (gameState, thisCard) => {
@@ -762,14 +750,14 @@ const cards: BaseCard[] = [
                 },
                 options: {
                     match: { name: "Sora" },
-                    player: "attacker",
+                    player: "self",
                     zone: "field",
                 },
                 effect: {
                     type: "heal",
                     amount: 1,
                     target: { type: "character", owner: "self", self: true },
-                }
+                },
             },
         ],
         staticAbilities: {
@@ -862,8 +850,7 @@ const cards: BaseCard[] = [
             "~~Frozen Shield~~ - When this character enters play, prevent the next 2 damage dealt to any friendly character.",
         ],
         type: "character",
-        flavour:
-            "Standing against the tide of chaos, the Frost Warden protects all under its watch.",
+        flavor: "Standing against the tide of chaos, the Frost Warden protects all under its watch.",
         inkwell: true,
         color: "sapphire",
         cost: 4,
@@ -918,8 +905,7 @@ const cards: BaseCard[] = [
             "~~Solar Resilience~~ - Exert this item to give a character +2 strength until the end of turn.",
         ],
         type: "item",
-        flavour:
-            "Forged in the heart of a dying star, it glows with the warmth of a thousand suns.",
+        flavor: "Forged in the heart of a dying star, it glows with the warmth of a thousand suns.",
         inkwell: true,
         color: "amber",
         cost: 3,
@@ -1041,8 +1027,7 @@ const cards: BaseCard[] = [
             "~~Flame Conjure~~ - When this character enters play, deal 2 damage to all enemy characters.",
         ],
         type: "character",
-        flavour:
-            "From the darkness of the ash, the Cindershadow rises to incinerate all that opposes it.",
+        flavor: "From the darkness of the ash, the Cindershadow rises to incinerate all that opposes it.",
         inkwell: true,
         color: "ruby",
         cost: 5,
@@ -1093,8 +1078,7 @@ const cards: BaseCard[] = [
             "~~Arcane Insight~~ - When this character is played, look at the top 5 cards of your deck and rearrange them.",
         ],
         type: "character",
-        flavour:
-            "Time bends and knowledge flows from the mind of the Mystic Elder.",
+        flavor: "Time bends and knowledge flows from the mind of the Mystic Elder.",
         inkwell: true,
         color: "amethyst",
         cost: 4,
@@ -1166,8 +1150,7 @@ const cards: BaseCard[] = [
             "~~Entangling Vines~~ - When this character challenges, reduce the target's willpower by 2.",
         ],
         type: "character",
-        flavour:
-            "The Vinebound Titan crushes its foes with nature's unyielding force.",
+        flavor: "The Vinebound Titan crushes its foes with nature's unyielding force.",
         inkwell: false,
         color: "emerald",
         cost: 7,

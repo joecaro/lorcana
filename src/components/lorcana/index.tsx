@@ -15,8 +15,12 @@ import {
     ParamPlayer,
     Player,
 } from "@/lib/lorcana/types/game";
-import { computeAvailableActions } from "@/lib/lorcana/store/utils";
-import { moveCardToZone, PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
+import { computeAvailableActions, isCard } from "@/lib/lorcana/store/utils";
+import {
+    moveCardToZone,
+    PLAYER_ACTIONS,
+    processOptionSelect,
+} from "@/lib/lorcana/store/actions";
 import { Card } from "../ui/card";
 import CardSelect from "./card-select";
 import useGameInitializer from "./initializer";
@@ -155,13 +159,13 @@ export default function Game({
                     />
                 </div>
                 <div className='flex'>
-                        <span className='relative'>
-                            <Shield size={40} />
-                            <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
-                                {currentPlayer.lore}
-                            </span>
+                    <span className='relative'>
+                        <Shield size={40} />
+                        <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                            {currentPlayer.lore}
                         </span>
-                    </div>
+                    </span>
+                </div>
                 <div className='mt-8 text-center flex gap-2'>
                     <Deck />
                     <Hand />
@@ -202,13 +206,13 @@ const Options = () => {
                 PLAYER_ACTIONS.draw(1, attackingPlayer);
             }
 
-            inputStage?.options.forEach((option, index) => {
+            inputStage?.computedOptions.forEach((option, index) => {
                 if (
-                    typeof option === "object" &&
+                    isCard(option) &&
                     index < 9 &&
                     e.key === String(index + 1)
                 ) {
-                    inputStage.callback(option);
+                    processOptionSelect(option, inputStage);
                 }
             });
         };

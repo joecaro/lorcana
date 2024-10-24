@@ -181,7 +181,8 @@ const GameCard: React.FC<CardProps> = props => {
                                             : ""
                                     )}
                                 >
-                                    {props.willpower + (props.willpowerModifier || 0)}
+                                    {props.willpower +
+                                        (props.willpowerModifier || 0)}
                                 </span>
                             </div>
                             <div className='relative'>
@@ -201,7 +202,8 @@ const GameCard: React.FC<CardProps> = props => {
                                             : ""
                                     )}
                                 >
-                                    {props.strength + (props.strengthModifier || 0)}
+                                    {props.strength +
+                                        (props.strengthModifier || 0)}
                                 </span>
                             </div>
                         </div>
@@ -246,29 +248,31 @@ const GameCard: React.FC<CardProps> = props => {
                     <div
                         className={`flex flex-col justify-around items-start text-start p-[0.1rem]`}
                     >
-                        {props.text?.map((text, index, { length }) => {
-                            const formattedText = formatter(text);
-                            return (
-                                <p
-                                    key={index}
-                                    className={`description text-neutral-900 font-manrope text-[4px] ${
-                                        index < length
-                                            ? " ftb-inner-margin"
-                                            : ""
-                                    }`}
-                                    dangerouslySetInnerHTML={{
-                                        __html: formattedText,
-                                    }}
-                                />
-                            );
-                        })}
-                        {(props.flavour?.length || 0) > 0 && (
-                            <span className='w-full h-[0.25px] bg-gradient-to-r from-neutral-600 to-transparent' />
+                        <div>
+                            {props.text?.map((text, index, { length }) => {
+                                const formattedText = formatter(text);
+                                return (
+                                    <p
+                                        key={index}
+                                        className={`description text-neutral-900 font-manrope text-[4px] ${
+                                            index < length
+                                                ? " ftb-inner-margin"
+                                                : ""
+                                        }`}
+                                        dangerouslySetInnerHTML={{
+                                            __html: formattedText,
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                        {(props.flavor.length || 0) > 0 && (
+                            <span className='w-full h-[0.25px] block bg-gradient-to-r from-neutral-600 to-transparent' />
                         )}
                         <p
                             className='text-neutral-900 text-[4px]'
                             dangerouslySetInnerHTML={{
-                                __html: props.flavour || "",
+                                __html: props.flavor || "",
                             }}
                         />
                     </div>
@@ -286,7 +290,9 @@ const GameCard: React.FC<CardProps> = props => {
                             )}
                             size={3}
                         />
-                        {Array.from({ length: props.lore }).map((_, index) => (
+                        {Array.from({
+                            length: props.lore + props.loreModifier,
+                        }).map((_, index) => (
                             <p
                                 key={props.name + "lore" + index}
                                 className='text-[5px]'

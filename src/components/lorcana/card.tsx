@@ -8,6 +8,8 @@ import { cn, isMobile } from "@/lib/utils";
 import useGameStore from "@/lib/lorcana/store";
 
 import "./card.css";
+import { isCard } from "@/lib/lorcana/store/utils";
+import { processOptionSelect } from "@/lib/lorcana/store/actions";
 
 const MOVE_THRESHOLD = 30; // Pixel threshold for movement detection
 
@@ -42,9 +44,7 @@ const CardComp: React.FC<{
 
     const isOption = (card: Card) =>
         !!inputStage &&
-        !!inputStage.options.find(
-            c => typeof c === "object" && c.id === card.id
-        );
+        !!inputStage.computedOptions.find(c => isCard(c) && c.id === card.id);
 
     const startPos = useRef<{ x: number; y: number } | null>(null);
     const cardRef = useRef<HTMLDivElement | null>(null);
@@ -84,8 +84,12 @@ const CardComp: React.FC<{
                 Math.pow(endX - startPos.current.x, 2) +
                     Math.pow(endY - startPos.current.y, 2)
             );
-            if (distanceMoved < MOVE_THRESHOLD && isOption(card)) {
-                inputStage?.callback(card); // Handle click action
+            if (
+                distanceMoved < MOVE_THRESHOLD &&
+                isOption(card) &&
+                inputStage
+            ) {
+                processOptionSelect(card, inputStage);
             }
         }
         onClick?.();
@@ -213,8 +217,8 @@ const CardComp: React.FC<{
             {inputStage && isOption(card) && (
                 <div className='absolute top-0 left-0 w-full h-1/5 bg-black bg-opacity-50 rounded-lg'>
                     {/* display index of option */}
-                    {inputStage.options.findIndex(
-                        c => typeof c === "object" && c.id === card.id
+                    {inputStage.computedOptions.findIndex(
+                        c => isCard(c) && c.id === card.id
                     ) + 1}
                 </div>
             )}

@@ -145,7 +145,7 @@ export function applyModifiers(
     actionType: Action | "challenged",
     statType: "strength" | "willpower" | "resist" | "cost"
 ): number {
-    const currentTurn = useGameStore.getState().turn;
+    const { turn, players } = useGameStore.getState();
 
     const applicableModifiers = card.modifiers?.filter(mod => {
         // Check if the modifier is still valid based on its duration
@@ -154,11 +154,15 @@ export function applyModifiers(
                 case "permanent":
                     return true;
                 case "until_end_of_turn":
-                    return mod.turnApplied === currentTurn;
+                    return mod.turnApplied === turn;
                 case "until_end_of_next_turn":
-                    return mod.turnApplied <= currentTurn - 1;
+                    return mod.turnApplied <= turn - 1;
                 case "until_damage_received":
                     return !mod.hasTriggered;
+                case "until_card_leaves_play":
+                    return players.some(player =>
+                        player.field.some(c => c.id === card.id)
+                    );
                 default:
                     return false; // If the duration is unknown, consider it expired
             }
@@ -176,7 +180,7 @@ export function applyModifiers(
     applicableModifiers?.forEach(mod => {
         if (mod.duration !== "permanent") {
             mod.hasTriggered = true;
-            mod.turnApplied = currentTurn;
+            mod.turnApplied = turn;
         }
     });
 
@@ -195,7 +199,7 @@ export function canPlayCard(gameState: GameState, card: Card): boolean {
     );
 }
 
-export function canInkCard(gameState: GameState, card: Card): boolean {
+export function canInkCard(_: GameState, card: Card): boolean {
     return card.zone === "hand" && !card.exerted && card.inkwell;
 }
 
@@ -222,21 +226,29 @@ export function canChallenge(gameState: GameState, card: Card): boolean {
     return (
         card.zone === "field" &&
         !card.exerted &&
-        opponentPlayer.field.some(opponentCard => !opponentCard.exerted)
+        opponentPlayer.field.some(opponentCard => opponentCard.exerted)
     );
 }
 
-export function isCard(card: any): card is Card {
-    return card && card.name && card.type && card.zone;
+export function isCard(card: unknown): card is Card {
+    return (
+        !!card &&
+        typeof card === "object" &&
+        "name" in card &&
+        "type" in card &&
+        "zone" in card
+    );
 }
 
-export function isAbility(ability: any): ability is CardAbility {
-    return ability && ability.type;
+export function isAbility(ability: unknown): ability is CardAbility {
+    return !!ability && typeof ability === "object" && "type" in ability;
 }
 
 export function isInputAbility(
-    ability: any
-): ability is UserInitiatedInteractiveCardAbility | TriggeredInteractiveCardAbility {
+    ability: unknown
+): ability is
+    | UserInitiatedInteractiveCardAbility
+    | TriggeredInteractiveCardAbility {
     return (
         isAbility(ability) &&
         (ability.type === "user-initiated" || ability.type === "triggered") &&
@@ -245,7 +257,7 @@ export function isInputAbility(
 }
 
 export function isEffectAbility(
-    ability: any
+    ability: unknown
 ): ability is UserInitiatedEffectCardAbility | TriggeredEffectCardAbility {
     return (
         isAbility(ability) &&

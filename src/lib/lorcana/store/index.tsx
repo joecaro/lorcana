@@ -21,6 +21,7 @@ const useGameStore = create<GameState>()(
             debugLogs: [],
             phase: "start_phase",
             inputStage: null,
+            inputQueue: [],
             turnFlags: {
                 ink: false,
                 play: false,

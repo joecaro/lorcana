@@ -1,5 +1,5 @@
 import useGameStore from "../store";
-import { PLAYER_ACTIONS } from "../store/actions";
+import { PLAYER_ACTIONS, processOptionSelect } from "../store/actions";
 import { computeAvailableActions } from "../store/utils";
 import { Action, GameState, MultipleCardAction } from "../types/game";
 
@@ -52,11 +52,13 @@ export function executeBotAction() {
     // Otherwise, determine the bot's action
     if (gameState.inputStage) {
         const randomOption =
-            gameState.inputStage.options[
-                Math.floor(Math.random() * gameState.inputStage.options.length)
+            gameState.inputStage.computedOptions[
+                Math.floor(
+                    Math.random() * gameState.inputStage.computedOptions.length
+                )
             ];
 
-        gameState.inputStage.callback(randomOption);
+        processOptionSelect(randomOption, gameState.inputStage);
 
         setTimeout(() => {
             executeBotAction();

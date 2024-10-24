@@ -14,11 +14,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/lib/lorcana/types/game";
-import {
-    generateActionChecks,
-    generateActions,
-    generateTriggers,
-} from "@/lib/lorcana/store/utils/cards";
 
 export default function Page() {
     const [card, setCard] = useState<Card>({
@@ -29,11 +24,9 @@ export default function Page() {
         name: "VINEBOUND TITAN",
         title: "Master of the Elements",
         characteristics: ["storyborn", "sorcerer"],
-        text: [
-            "**Stormborn** - This character gains +1 willpower when attacking.",
-        ],
+        text: [],
         type: "character",
-        flavour:
+        flavor:
             "The Storm Enchanter is a master of the elements, able to command very skies.",
         inkwell: true,
         color: "amethyst",
@@ -42,6 +35,7 @@ export default function Page() {
         willpower: 3,
         willpowerModifier: -1,
         strengthModifier: 2,
+        loreModifier: 1,
         lore: 2,
         illustrator: "GPT4o",
         language: "EN",
@@ -50,14 +44,14 @@ export default function Page() {
         rarity: "uncommon",
         isFoil: true,
         foilUrl: "/foil/splatter.jpg",
-        actionChecks: generateActionChecks(),
-        actions: generateActions(),
-        triggers: generateTriggers(),
+        abilities: [],
         staticAbilities: {
             challenger: { active: false },
             evasive: { active: false },
             resist: { active: false },
             sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
         },
         exerted: false,
         zone: "deck",
@@ -142,11 +136,11 @@ export default function Page() {
                         />
                     </div>
                     <div className='col-span-2'>
-                        <Label htmlFor='flavour'>Flavour Text</Label>
+                        <Label htmlFor='flavor'>flavor Text</Label>
                         <Textarea
-                            id='flavour'
-                            name='flavour'
-                            value={card.flavour}
+                            id='flavor'
+                            name='flavor'
+                            value={card.flavor}
                             onChange={handleChange}
                         />
                     </div>

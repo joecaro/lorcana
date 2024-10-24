@@ -77,12 +77,12 @@ export function GameSetupComponent() {
     };
 
     const renderPlayerTab = (player: "player1" | "player2") => (
-        <div className='md:flex'>
-            <div className='flex-1'>
+        <div className='md:flex gap-4 border p-2'>
+            <div className='flex-1 bg-neutral-900 p-2 rounded'>
                 <Label>Deck (select cards)</Label>
                 <Input
                     type='text'
-                    className="my-2"
+                    className='my-2'
                     onChange={e => setCardSearch(e.currentTarget.value)}
                 />
                 <div className='h-80 overflow-y-auto grid grid-cols-2 gap-2'>
@@ -113,14 +113,15 @@ export function GameSetupComponent() {
                                     turnPlayed={0}
                                     strengthModifier={0}
                                     willpowerModifier={0}
+                                    loreModifier={0}
                                     isFoil={false}
                                 />
                             </Button>
                         ))}
                 </div>
             </div>
-            <div className='flex-1 flex justify-between'>
-                <div className='flex-1 w-full border p-1'>
+            <div className='flex-1 flex justify-between p-2 bg-neutral-900 rounded'>
+                <div className='flex-1 w-full'>
                     <h2 className='text-xl font-semibold'>
                         {player === "player1" ? "Player 1" : "Player 2"}
                     </h2>
@@ -195,7 +196,17 @@ export function GameSetupComponent() {
 
     return (
         <div className='container p-4 mx-auto'>
-            <h1 className='text-2xl font-bold mb-4'>Game Setup</h1>
+            <div className='flex justify-between'>
+                <h1 className='text-2xl font-bold mb-4'>Game Setup</h1>
+                <Button
+                    type='submit'
+                    variant={"secondary"}
+                    onClick={handleSubmit}
+                    className='w-full max-w-80'
+                >
+                    Start Game
+                </Button>
+            </div>
             <Tabs value={activePlayer} onValueChange={setActivePlayer}>
                 <TabsList className='grid grid-cols-2 bg-neutral-900'>
                     <TabsTrigger
@@ -218,9 +229,6 @@ export function GameSetupComponent() {
                     {renderPlayerTab("player2")}
                 </TabsContent>
             </Tabs>
-            <Button type='submit' onClick={handleSubmit} className='w-full'>
-                Start Game
-            </Button>
         </div>
     );
 }

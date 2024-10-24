@@ -14,6 +14,10 @@ export function createChallengerText(num: number) {
     return `**Challenger +${num}**: (Character willpower increases by 1 when challenging).`;
 }
 
+export function createResistText(num: number) {
+    return `**Resist +${num}**: (Damage dealt to this character is reduced by 1).`;
+}
+
 export const evasiveText = `**Evasive**: This character cannot be challenged.`;
 
 export function create(card: BaseCard, ownerId: string): Card {

@@ -13,7 +13,7 @@ const EmeraldCards: BaseCard[] = [
             "~~HERE COMES THE SMOLDER~~ Whenever this character is challenged, the challenging player chooses and discards a card.",
         ],
         type: "character",
-        flavour:
+        flavor:
             "“I didn't want to have to do this, but you leave me no choice. . . .”",
         inkwell: true,
         color: "emerald",
@@ -36,7 +36,7 @@ const EmeraldCards: BaseCard[] = [
                 },
                 options: {
                     zone: "hand",
-                    player: "attacker",
+                    player: "self",
                     match: {},
                 },
                 callback: (gameState, selectedCard) => {

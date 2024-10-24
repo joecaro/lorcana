@@ -7,7 +7,7 @@ import useGameStore from "@/lib/lorcana/store";
 import { PLAYER_ACTIONS } from "@/lib/lorcana/store/actions";
 // import CardComp from "./card";
 import { cn } from "@/lib/utils";
-import { computeAvailableActions } from "@/lib/lorcana/store/utils";
+import { computeAvailableActions, isCard } from "@/lib/lorcana/store/utils";
 
 export default function TestPage() {
     const players = useGameStore(state => state.players);
@@ -37,9 +37,9 @@ export default function TestPage() {
                                     {player.hand.map(card => {
                                         const highlighted =
                                             inputStage &&
-                                            inputStage.options.find(
+                                            inputStage.computedOptions.find(
                                                 c =>
-                                                    typeof c === "object" &&
+                                                    isCard(c) &&
                                                     c.id === card.id
                                             );
                                         return (
@@ -76,9 +76,9 @@ export default function TestPage() {
                                     {player.field.map(card => {
                                         const highlighted =
                                             inputStage &&
-                                            inputStage.options.find(
+                                            inputStage.computedOptions.find(
                                                 c =>
-                                                    typeof c === "object" &&
+                                                    isCard(c) &&
                                                     c.id === card.id
                                             );
                                         return (
@@ -126,7 +126,9 @@ export default function TestPage() {
                             ))}
                         </ul>
                     </div>
-                    <Button onClick={() => PLAYER_ACTIONS.draw(1, attackingPlayer)}>
+                    <Button
+                        onClick={() => PLAYER_ACTIONS.draw(1, attackingPlayer)}
+                    >
                         Draw Card
                     </Button>
                 </Card>

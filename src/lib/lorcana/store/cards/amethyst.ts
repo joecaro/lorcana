@@ -14,7 +14,7 @@ const AmethystCards: BaseCard[] = [
         text: [createChallengerText(2)],
         type: "character",
         strength: 0,
-        flavour: "“Enchant\xe9e. A tip of the hat from Dr. Facilier.”",
+        flavor: "“Enchant\xe9e. A tip of the hat from Dr. Facilier.”",
         inkwell: true,
         color: "amethyst",
         cost: 2,

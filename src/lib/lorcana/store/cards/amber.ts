@@ -12,7 +12,7 @@ const AmberCards: BaseCard[] = [
         characteristics: ["hero", "storyborn", "princess"],
         text: ["**VOICELESS** This character can't ↷ to sing songs."],
         type: "character",
-        flavour: '". . ."',
+        flavor: '". . ."',
         inkwell: true,
         color: "amber",
         cost: 4,
@@ -47,6 +47,7 @@ const AmberCards: BaseCard[] = [
             createSingerText(5),
             // "~~MUSICAL DEBUT~~ When you play this character, look at the top 4 cards of your deck. You may reveal a song card and put it into your hand. Put the rest on the bottom of your deck in any order.",
         ],
+        flavor: "",
         type: "character",
         inkwell: true,
         color: "amber",
@@ -82,8 +83,7 @@ const AmberCards: BaseCard[] = [
         ],
         type: "character",
         inkwell: false,
-        flavour:
-            '"Production is up, costs are down, the rivers are full. Time to talk expansion."',
+        flavor: '"Production is up, costs are down, the rivers are full. Time to talk expansion."',
         color: "amber",
         cost: 4,
         strength: 3,
@@ -116,7 +116,7 @@ const AmberCards: BaseCard[] = [
             "**WHERE DID THEY ALL COME FROM?** You may have up to 99 copies of Dalmatian Puppy - Tail Wagger in your deck.",
         ],
         type: "character",
-        flavour: "First they steal your heart. Then they steal your chair.",
+        flavor: "First they steal your heart. Then they steal your chair.",
         inkwell: true,
         color: "amber",
         cost: 2,
@@ -151,7 +151,7 @@ const AmberCards: BaseCard[] = [
         ],
         type: "character",
         inkwell: false,
-        flavour: "Her pups will follow her anywhere.",
+        flavor: "Her pups will follow her anywhere.",
         color: "amber",
         cost: 6,
         strength: 1,
@@ -166,11 +166,11 @@ const AmberCards: BaseCard[] = [
         abilities: [
             {
                 type: "triggered",
-                prompt: 'Play a character with cost 2 or less from your discard for free.',
+                prompt: "Play a character with cost 2 or less from your discard for free.",
                 trigger: "play",
                 options: {
                     zone: "discard",
-                    player: "attacker",
+                    player: "self",
                     match: { type: "character", cost: 2 },
                 },
                 condition: () => {
@@ -190,11 +190,11 @@ const AmberCards: BaseCard[] = [
             },
             {
                 type: "triggered",
-                prompt: 'Play a character with cost 2 or less from your discard for free.',
+                prompt: "Play a character with cost 2 or less from your discard for free.",
                 trigger: "quest",
                 options: {
                     zone: "discard",
-                    player: "attacker",
+                    player: "self",
                     match: { type: "character", cost: 2 },
                 },
                 condition: (_, eventCard, thisCard) => {
@@ -233,7 +233,7 @@ const AmberCards: BaseCard[] = [
             "~~BARK~~ ↷ – Chosen character gets -2 ※ until the start of your next turn.",
         ],
         type: "character",
-        flavour: "Fast like lightning, and ready to take on any bad guy.",
+        flavor: "Fast like lightning, and ready to take on any bad guy.",
         inkwell: true,
         color: "amber",
         cost: 4,
@@ -253,7 +253,7 @@ const AmberCards: BaseCard[] = [
                 prompt: "Choose a character to effect",
                 options: {
                     zone: "field",
-                    player: "defender",
+                    player: "opponent",
                     match: { type: "character" },
                 },
                 actionCheck: () => {
@@ -269,7 +269,7 @@ const AmberCards: BaseCard[] = [
                         hasTriggered: false,
                     });
 
-                    return { ...gameState, inputStage: null };
+                    return { ...gameState };
                 },
             },
         ],
@@ -314,7 +314,7 @@ const AmberCards: BaseCard[] = [
                 },
             },
         ],
-        flavour: "„En gawrsh!“",
+        flavor: "„En gawrsh!“",
         inkwell: true,
         color: "amber",
         cost: 5,
@@ -339,7 +339,7 @@ const AmberCards: BaseCard[] = [
     {
         implemented: false,
         slug: "heihei-boat-snack",
-        url: "https://six-inks.pages.dev/assets/images/cards/EN/001/7.webp",
+        url: "/cards/heihei-boat-snack.jpg",
         name: "Heihei",
         title: "Boat Snack",
         characteristics: ["storyborn", "ally"],
@@ -347,8 +347,7 @@ const AmberCards: BaseCard[] = [
             "**Support** _(Whenever this character quests, you may add their ※ to another chosen character's ※ this turn.)_",
         ],
         type: "character",
-        flavour:
-            "Sometimes, our strengths lie beneath the surface.\x03Far beneath, in some cases. . . .“<br />\x03−Moana",
+        flavor: "Sometimes, our strengths lie beneath the surface.\x03Far beneath, in some cases. . . .“<br />\x03−Moana",
         inkwell: true,
         color: "amber",
         cost: 1,

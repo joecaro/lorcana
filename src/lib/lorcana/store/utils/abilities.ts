@@ -19,7 +19,7 @@ export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,
     options: {
         zone: "field",
-        player: "defender",
+        player: "opponent",
         match: { type: "character" },
     },
     callback: (gameState, selectedCard) => {
@@ -45,7 +45,7 @@ export const healXDamageOnPlay = (num: number): TriggeredCardAbility => ({
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,
     options: {
         zone: "field",
-        player: "defender",
+        player: "self",
         match: { type: "character" },
     },
     callback: (gameState, selectedCard) => {
@@ -69,7 +69,7 @@ export const chooseCardFromZonToZone = (
     trigger: trigger,
     options: {
         zone: fromZone,
-        player: "attacker",
+        player: "self",
         match: { type: "character" },
     },
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,

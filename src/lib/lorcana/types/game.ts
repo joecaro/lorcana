@@ -10,17 +10,22 @@ export type GameState = {
     turn: number;
     endOfTurnCallbacks: (() => void)[];
     debugLogs: Record<string, unknown>[];
-    inputStage: {
-        prompt: string;
-        options: Card[] | CardAbility[];
-        maxSelections?: number;
-        showDialogue?: boolean;
-        stepIndex?: number;
-        callback: (choice: Card | CardAbility) => void;
-    } | null;
+    inputStage: InputStage | null;
+    inputQueue: InputStage[];
     turnFlags: Partial<Record<Action, boolean>>;
     initializeParamPlayers: (players: ParamPlayer[]) => void;
     allCards: BaseCard[];
+};
+
+export type InputStage = {
+    card: Card | null;
+    prompt: string;
+    options: InputOptions;
+    computedOptions: Card[] | CardAbility[];
+    maxSelections?: number;
+    showDialogue?: boolean;
+    stepIndex?: number;
+    callback: (choice: Card | CardAbility) => GameState;
 };
 
 export type ParamPlayer = {
@@ -55,8 +60,10 @@ export type Modifier = {
         | "until_end_of_next_turn"
         | "until_action"
         | "until_damage_received"
+        | "until_card_leaves_play"
         | "permanent";
     turnApplied: number;
+    cardCheck?: (card: Card) => boolean;
     hasTriggered: boolean;
 };
 
@@ -122,7 +129,7 @@ export type Effect =
 
 export type InputOptions = {
     zone: Zone;
-    player: "attacker" | "defender";
+    player: "self" | "opponent" | "both";
     match: Partial<Card>;
     count?: number;
 };
@@ -139,6 +146,16 @@ export type MultiPart = {
 
 type EffectOnly = {
     effect: Effect;
+    player?: "self" | "opponent" | "both";
+    match?: Partial<Card>;
+};
+
+type CallbackOnly = {
+    callback: (
+        gameState: GameState,
+        selectedOption: Card | null,
+        thisCard: Card
+    ) => GameState;
 };
 
 type Interactive = {
@@ -172,11 +189,16 @@ type BaseTriggeredCardAbility = {
 
 export type TriggeredEffectCardAbility = BaseTriggeredCardAbility & EffectOnly;
 
-export type TriggeredInteractiveCardAbility = BaseTriggeredCardAbility & Interactive;
+export type TriggeredInteractiveCardAbility = BaseTriggeredCardAbility &
+    Interactive;
+
+export type TriggeredCallbackCardAbility = BaseTriggeredCardAbility &
+    CallbackOnly;
 
 export type TriggeredCardAbility =
     | TriggeredEffectCardAbility
-    | TriggeredInteractiveCardAbility;
+    | TriggeredInteractiveCardAbility
+    | TriggeredCallbackCardAbility;
 
 export type BaseUserInitiatedCardAbility = {
     type: "user-initiated";
@@ -184,9 +206,11 @@ export type BaseUserInitiatedCardAbility = {
     actionCheck: (gameState: GameState, thisCard: Card) => boolean;
 };
 
-export type UserInitiatedEffectCardAbility = BaseUserInitiatedCardAbility & EffectOnly;
+export type UserInitiatedEffectCardAbility = BaseUserInitiatedCardAbility &
+    EffectOnly;
 
-export type UserInitiatedInteractiveCardAbility = BaseUserInitiatedCardAbility & Interactive;
+export type UserInitiatedInteractiveCardAbility = BaseUserInitiatedCardAbility &
+    Interactive;
 
 export type UserInitiatedCardAbility =
     | UserInitiatedEffectCardAbility
@@ -207,7 +231,7 @@ export type BaseCard = {
     foilUrl?: string;
     text: string[];
     characteristics: string[];
-    flavour?: string;
+    flavor: string;
     type: "character" | "item" | "action" | "song";
     inkwell: boolean;
     color: "amber" | "ruby" | "emerald" | "sapphire" | "steel" | "amethyst";
