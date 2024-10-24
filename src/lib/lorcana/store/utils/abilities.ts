@@ -1,4 +1,8 @@
-import { TriggeredCardAbility, Zone } from "../../types/game";
+import {
+    TriggeredCardAbility,
+    TriggeredInteractiveCardAbility,
+    Zone,
+} from "../../types/game";
 import { moveCardToZoneReturnState } from "../actions";
 
 export const drawXCardOnPlay = (num: number): TriggeredCardAbility => ({
@@ -12,7 +16,9 @@ export const drawXCardOnPlay = (num: number): TriggeredCardAbility => ({
     },
 });
 
-export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
+export const dealXDamageOnPlay = (
+    num: number
+): TriggeredInteractiveCardAbility => ({
     type: "triggered",
     prompt: "Choose a character to deal damage to",
     trigger: "play",
@@ -22,15 +28,15 @@ export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
         player: "opponent",
         match: { type: "character" },
     },
-    callback: (gameState, selectedCard) => {
-        if (selectedCard) {
-            selectedCard.strengthModifier -= num;
-            if (selectedCard?.strength - selectedCard?.strengthModifier) {
+    callback: ({ gameState, selectedOption }) => {
+        if (selectedOption) {
+            selectedOption.strengthModifier -= num;
+            if (selectedOption?.strength - selectedOption?.strengthModifier) {
                 gameState = moveCardToZoneReturnState(
                     gameState,
                     "field",
                     "discard",
-                    selectedCard
+                    selectedOption
                 );
             }
         }
@@ -38,7 +44,9 @@ export const dealXDamageOnPlay = (num: number): TriggeredCardAbility => ({
     },
 });
 
-export const healXDamageOnPlay = (num: number): TriggeredCardAbility => ({
+export const healXDamageOnPlay = (
+    num: number
+): TriggeredInteractiveCardAbility => ({
     type: "triggered",
     prompt: "Choose a character to heal",
     trigger: "play",
@@ -48,11 +56,11 @@ export const healXDamageOnPlay = (num: number): TriggeredCardAbility => ({
         player: "self",
         match: { type: "character" },
     },
-    callback: (gameState, selectedCard) => {
-        if (selectedCard) {
-            selectedCard.strengthModifier = Math.min(
+    callback: ({ gameState, selectedOption }) => {
+        if (selectedOption) {
+            selectedOption.strengthModifier = Math.min(
                 0,
-                (selectedCard.strengthModifier += num)
+                (selectedOption.strengthModifier += num)
             );
         }
         return { ...gameState };
@@ -63,7 +71,7 @@ export const chooseCardFromZonToZone = (
     fromZone: Zone,
     toZone: Zone,
     trigger: TriggeredCardAbility["trigger"]
-): TriggeredCardAbility => ({
+): TriggeredInteractiveCardAbility => ({
     type: "triggered",
     prompt: `Choose a card to move from ${fromZone} to ${toZone}`,
     trigger: trigger,
@@ -73,13 +81,13 @@ export const chooseCardFromZonToZone = (
         match: { type: "character" },
     },
     condition: (_, eventCard, thisCard) => eventCard?.id === thisCard.id,
-    callback: (gameState, selectedCard) => {
-        if (selectedCard) {
+    callback: ({ gameState, selectedOption }) => {
+        if (selectedOption) {
             gameState = moveCardToZoneReturnState(
                 gameState,
                 fromZone,
                 toZone,
-                selectedCard
+                selectedOption
             );
         }
         return { ...gameState };

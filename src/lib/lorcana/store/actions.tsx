@@ -405,7 +405,12 @@ function processInput(
     }
 
     if (!isInputAbility(ability)) {
-        return ability.callback(gameState, null, card);
+        return ability.callback({
+            gameState,
+            selectedOption: null,
+            thisCard: card,
+            eventDetails: {},
+        });
     }
 
     // Handle multi-part inputs
@@ -440,7 +445,12 @@ function processInput(
             }
 
             return ability.callback
-                ? ability.callback(gameState, selectedOption, card)
+                ? ability.callback({
+                      gameState,
+                      selectedOption,
+                      thisCard: card,
+                      eventDetails: {},
+                  })
                 : gameState;
         },
     });
@@ -451,11 +461,7 @@ function processInput(
 function handleMultiPartInput(
     gameState: GameState,
     multiPart: UserInitiatedInteractiveCardAbility["multiPart"],
-    finalCallback: (
-        gameState: GameState,
-        selectedOption: Card | null,
-        card: Card
-    ) => GameState,
+    finalCallback: UserInitiatedInteractiveCardAbility["callback"],
     card: Card
 ): GameState {
     if (!multiPart) {
@@ -470,7 +476,12 @@ function handleMultiPartInput(
     function processStep(currentGameState: GameState): GameState {
         if (stepIndex >= steps.length) {
             // All steps are done, execute the final callback
-            return finalCallback(currentGameState, null, card);
+            return finalCallback({
+                gameState: currentGameState,
+                selectedOption: null,
+                thisCard: card,
+                eventDetails: {},
+            });
         }
 
         const currentStep = steps[stepIndex];
@@ -671,11 +682,12 @@ function checkTriggers(
                             eventCard
                         );
                     } else {
-                        gameState = ability.callback(
+                        gameState = ability.callback({
                             gameState,
-                            eventCard,
-                            card
-                        );
+                            selectedOption: eventCard,
+                            thisCard: card,
+                            eventDetails: {},
+                        });
                     }
 
                     console.log(

@@ -13,8 +13,7 @@ const SapphireCards: BaseCard[] = [
             "~~IS THERE A DOWNSIDE TO THIS?~~ When you play this character, you may put chosen opposing character into their player's inkwell facedown.",
         ],
         type: "character",
-        flavor:
-            "“He's gotta have a weakness, because everybody's got a weakness.”",
+        flavor: "“He's gotta have a weakness, because everybody's got a weakness.”",
         color: "sapphire",
         cost: 7,
         strength: 3,
@@ -38,8 +37,8 @@ const SapphireCards: BaseCard[] = [
                     player: "opponent",
                     match: { type: "character" },
                 },
-                callback: (gameState, selectedCard) => {
-                    if (!selectedCard) {
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
                         return { ...gameState };
                     }
 
@@ -47,7 +46,7 @@ const SapphireCards: BaseCard[] = [
                         gameState,
                         "field",
                         "inkwell",
-                        selectedCard
+                        selectedOption
                     );
                 },
             },

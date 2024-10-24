@@ -151,21 +151,23 @@ type EffectOnly = {
 };
 
 type CallbackOnly = {
-    callback: (
-        gameState: GameState,
-        selectedOption: Card | null,
-        thisCard: Card
-    ) => GameState;
+    callback: (params: {
+        gameState: GameState;
+        selectedOption: Card | null;
+        thisCard: Card;
+        eventDetails: Record<string, unknown>;
+    }) => GameState;
 };
 
 type Interactive = {
     prompt: string;
     options: InputOptions;
-    callback: (
-        gameState: GameState,
-        selectedOption: Card | null,
-        thisCard: Card
-    ) => GameState;
+    callback: (params: {
+        gameState: GameState;
+        selectedOption: Card | null;
+        thisCard: Card;
+        eventDetails: Record<string, unknown>;
+    }) => GameState;
     showDialog?: boolean;
     multiPart?: MultiPart;
 };
@@ -179,7 +181,7 @@ type StaticCardAbility = {
 
 type BaseTriggeredCardAbility = {
     type: "triggered";
-    trigger: Event;
+    trigger: Event | "damage";
     condition: (
         gameState: GameState,
         eventCard: Card | null,

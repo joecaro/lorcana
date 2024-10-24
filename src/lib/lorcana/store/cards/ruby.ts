@@ -1,5 +1,12 @@
 import { BaseCard } from "../../types/game";
-import { moveCardToZoneReturnState, updateCardInState } from "../actions";
+import {
+    abilityCallback,
+    damageCard,
+    moveCardToZoneReturnState,
+    updateCardInState,
+} from "../actions";
+import { isCard } from "../utils";
+
 import {
     evasiveText,
     getAttackerFieldCharacters,
@@ -99,8 +106,8 @@ const RubyCards: BaseCard[] = [
                     player: "opponent",
                 },
                 prompt: "Choose a character to banish",
-                callback: (gameState, selectedCard) => {
-                    if (!selectedCard) {
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
                         return gameState;
                     }
 
@@ -108,7 +115,7 @@ const RubyCards: BaseCard[] = [
                         gameState,
                         "field",
                         "discard",
-                        selectedCard
+                        selectedOption
                     );
 
                     return gameState;
@@ -164,17 +171,17 @@ const RubyCards: BaseCard[] = [
                         false
                     );
                 },
-                callback: (gameState, eventCard, thisCard) => {
-                    if (eventCard?.slug.toLowerCase().includes("nutsy")) {
+                callback: ({ gameState, selectedOption, thisCard }) => {
+                    if (selectedOption?.slug.toLowerCase().includes("nutsy")) {
                         console.log("nutsy played and modified");
 
                         gameState = updateCardInState(gameState, {
-                            ...eventCard,
+                            ...selectedOption,
                             loreModifier: 1,
                         });
                     }
 
-                    if (eventCard?.id === thisCard.id) {
+                    if (selectedOption?.id === thisCard.id) {
                         getAttackerFieldCharacters(gameState).forEach(card => {
                             if (card.name.toLowerCase().includes("nutsy")) {
                                 console.log("nutsy found and modified");
@@ -195,7 +202,7 @@ const RubyCards: BaseCard[] = [
                 condition: (_, eventCard, thisCard) => {
                     return eventCard?.id === thisCard.id;
                 },
-                callback: (gameState, _, thisCard) => {
+                callback: ({ gameState, thisCard }) => {
                     const isAttacker = thisCard.owner === gameState.attacker;
 
                     if (isAttacker) {
@@ -257,20 +264,20 @@ const RubyCards: BaseCard[] = [
                         eventCard?.owner === thisCard.owner
                     );
                 },
-                callback: (gameState, eventCard, thisCard) => {
-                    if (!eventCard) {
+                callback: ({ gameState, selectedOption, thisCard }) => {
+                    if (!selectedOption) {
                         return gameState;
                     }
 
-                    if (eventCard.id !== thisCard.id) {
+                    if (selectedOption.id !== thisCard.id) {
                         gameState = updateCardInState(gameState, {
-                            ...eventCard,
+                            ...selectedOption,
                             willpowerModifier:
-                                (eventCard.willpowerModifier += 1),
+                                (selectedOption.willpowerModifier += 1),
                         });
                     }
 
-                    if (eventCard.id === thisCard.id) {
+                    if (selectedOption.id === thisCard.id) {
                         getAttackerFieldCharacters(gameState).forEach(card => {
                             if (
                                 card.type === "character" &&
@@ -294,7 +301,7 @@ const RubyCards: BaseCard[] = [
                 condition: (_, eventCard, thisCard) => {
                     return eventCard?.id === thisCard.id;
                 },
-                callback: (gameState, _, thisCard) => {
+                callback: ({ gameState, thisCard }) => {
                     const isAttacker = gameState.attacker === thisCard.owner;
 
                     console.log(
@@ -356,6 +363,96 @@ const RubyCards: BaseCard[] = [
         number: 118,
         set: "TFC",
         rarity: "common",
+        modifiers: [],
+        staticAbilities: {
+            challenger: { active: false },
+            evasive: { active: false },
+            resist: { active: false },
+            sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+    },
+    {
+        slug: "hydra-deadly-serpent",
+        implemented: false,
+        url: "/cards/hydra-deadly-serpent.jpg",
+        name: "Hydra",
+        title: "Deadly Serpent",
+        characteristics: ["storyborn"],
+        text: [
+            "~~WATCH THE TEETH~~ Whenever this character is dealt damage, deal that much damage to a chosen opposing character",
+        ],
+        type: "character",
+        flavor: "“More heads are better than one”",
+        abilities: [
+            {
+                type: "triggered",
+                trigger: "damage",
+                condition: (_, eventCard, thisCard) => {
+                    return eventCard?.id === thisCard.id;
+                },
+                options: {
+                    zone: "field",
+                    player: "opponent",
+                    match: { type: "character" },
+                },
+                prompt: "Choose a character to deal damage to",
+                callback: ({
+                    gameState,
+                    selectedOption,
+                    thisCard,
+                    eventDetails,
+                }) => {
+                    if (!selectedOption) {
+                        return gameState;
+                    }
+
+                    if (
+                        eventDetails &&
+                        "damage" in eventDetails &&
+                        !Number.isNaN(eventDetails.damage)
+                    ) {
+                        gameState.inputQueue.push({
+                            card: thisCard,
+                            prompt: "Choose a character to deal damage to",
+                            options: {
+                                zone: "field",
+                                player: "opponent",
+                                match: { type: "character" },
+                            },
+                            callback: abilityCallback(
+                                (gameState, selectedCard) => {
+                                    if (isCard(selectedCard)) {
+                                        gameState = damageCard(
+                                            gameState,
+                                            selectedCard,
+                                            eventDetails.damage as number
+                                        );
+                                    }
+                                    return { ...gameState };
+                                },
+                                "deal damage to character"
+                            ),
+                            computedOptions: [],
+                        });
+                    }
+
+                    return { ...gameState };
+                },
+            },
+        ],
+        inkwell: false,
+        color: "ruby",
+        cost: 6,
+        strength: 5,
+        willpower: 6,
+        lore: 2,
+        illustrator: "Jochem van Gool",
+        language: "EN",
+        number: 108,
+        set: "TFC",
+        rarity: "legendary",
         modifiers: [],
         staticAbilities: {
             challenger: { active: false },

@@ -86,11 +86,11 @@ const cards: BaseCard[] = [
                     }
                     return true;
                 },
-                callback: (gameState, selectedCard) => {
-                    if (selectedCard) {
-                        selectedCard.strengthModifier = Math.min(
+                callback: ({ gameState, selectedOption }) => {
+                    if (selectedOption) {
+                        selectedOption.strengthModifier = Math.min(
                             0,
-                            (selectedCard.strengthModifier += 1)
+                            (selectedOption.strengthModifier += 1)
                         );
                     }
                     return { ...gameState, inputStage: null };
@@ -311,13 +311,13 @@ const cards: BaseCard[] = [
                 },
                 prompt: "Choose a card to move to your hand",
                 showDialog: true,
-                callback: (gameState, selectedCard) => {
-                    if (selectedCard) {
+                callback: ({ gameState, selectedOption }) => {
+                    if (selectedOption) {
                         gameState = moveCardToZoneReturnState(
                             gameState,
                             "deck",
                             "hand",
-                            selectedCard
+                            selectedOption
                         );
                     }
                     gameState.inputStage = null;
@@ -602,13 +602,13 @@ const cards: BaseCard[] = [
                     }
                     return true;
                 },
-                callback: (gameState, selectedCard) => {
-                    if (selectedCard) {
+                callback: ({ gameState, selectedOption }) => {
+                    if (selectedOption) {
                         gameState = moveCardToZoneReturnState(
                             gameState,
                             "field",
                             "hand",
-                            selectedCard
+                            selectedOption
                         );
                     }
                     return { ...gameState, inputStage: null };
@@ -663,10 +663,10 @@ const cards: BaseCard[] = [
                     player: "opponent",
                     zone: "field",
                 },
-                callback: (gameState, selectedCard) => {
-                    return selectedCard
+                callback: ({ gameState, selectedOption }) => {
+                    return selectedOption
                         ? {
-                              ...damageCard(gameState, selectedCard, 1),
+                              ...damageCard(gameState, selectedOption, 1),
                               inputStage: null,
                           }
                         : { ...gameState, inputStage: null };
@@ -725,11 +725,11 @@ const cards: BaseCard[] = [
 
                     return getDefenderFieldCharacters(gameState).length > 0;
                 },
-                callback: (gameState, selectedCard, thisCard) => {
-                    return selectedCard
+                callback: ({ gameState, selectedOption, thisCard }) => {
+                    return selectedOption
                         ? {
                               ...damageCard(
-                                  damageCard(gameState, selectedCard, 3),
+                                  damageCard(gameState, selectedOption, 3),
                                   thisCard,
                                   1
                               ),

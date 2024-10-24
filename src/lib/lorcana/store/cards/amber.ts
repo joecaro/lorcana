@@ -176,13 +176,13 @@ const AmberCards: BaseCard[] = [
                 condition: () => {
                     return true;
                 },
-                callback: (gameState, selectedCard) => {
-                    const newGameState = selectedCard
+                callback: ({ gameState, selectedOption }) => {
+                    const newGameState = selectedOption
                         ? moveCardToZoneReturnState(
                               gameState,
                               "discard",
                               "field",
-                              selectedCard
+                              selectedOption
                           )
                         : { ...gameState };
                     return { ...newGameState };
@@ -200,13 +200,13 @@ const AmberCards: BaseCard[] = [
                 condition: (_, eventCard, thisCard) => {
                     return eventCard?.id === thisCard.id;
                 },
-                callback: (gameState, selectedCard) => {
-                    const newGameState = selectedCard
+                callback: ({ gameState, selectedOption }) => {
+                    const newGameState = selectedOption
                         ? moveCardToZoneReturnState(
                               gameState,
                               "discard",
                               "field",
-                              selectedCard
+                              selectedOption
                           )
                         : { ...gameState };
                     return { ...newGameState };
@@ -259,8 +259,8 @@ const AmberCards: BaseCard[] = [
                 actionCheck: () => {
                     return true;
                 },
-                callback: (gameState, selectedCard) => {
-                    selectedCard?.modifiers.push({
+                callback: ({ gameState, selectedOption }) => {
+                    selectedOption?.modifiers.push({
                         type: "challenge",
                         stat: "willpower",
                         value: -2,

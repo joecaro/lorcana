@@ -223,12 +223,12 @@ const SteelCards: BaseCard[] = [
                     zone: "field",
                     match: { type: "character" },
                 },
-                callback: (gameState, selectedCard, thisCard) => {
-                    if (!selectedCard) {
+                callback: ({ gameState, selectedOption, thisCard }) => {
+                    if (!selectedOption) {
                         return { ...gameState };
                     }
 
-                    gameState = damageCard(gameState, selectedCard, 2);
+                    gameState = damageCard(gameState, selectedOption, 2);
 
                     gameState = moveCardToZoneReturnState(
                         gameState,
@@ -288,12 +288,12 @@ const SteelCards: BaseCard[] = [
                     zone: "field",
                     match: { type: "character" },
                 },
-                callback: (gameState, selectedCard) => {
-                    if (!selectedCard) {
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
                         return { ...gameState };
                     }
 
-                    selectedCard.modifiers.push({
+                    selectedOption.modifiers.push({
                         type: "challenge",
                         duration: "until_end_of_turn",
                         hasTriggered: false,
@@ -301,7 +301,7 @@ const SteelCards: BaseCard[] = [
                         turnApplied: gameState.turn,
                         value: 2,
                     });
-                    selectedCard.modifiers.push({
+                    selectedOption.modifiers.push({
                         type: "challenged",
                         duration: "until_end_of_turn",
                         hasTriggered: false,
