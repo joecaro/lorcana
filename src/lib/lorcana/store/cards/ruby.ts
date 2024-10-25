@@ -8,6 +8,7 @@ import {
 import { isCard } from "../utils";
 
 import {
+    baseAbilityCheck,
     evasiveText,
     getAttackerFieldCharacters,
     getDefenderFieldCharacters,
@@ -454,6 +455,71 @@ const RubyCards: BaseCard[] = [
         set: "TFC",
         rarity: "legendary",
         modifiers: [],
+        staticAbilities: {
+            challenger: { active: false },
+            evasive: { active: false },
+            resist: { active: false },
+            sing: { active: true },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+    },
+    {
+        slug: "ruby-chromicron",
+        implemented: true,
+        url: "/cards/ruby-chromicron.jpg",
+        name: "Ruby Chromicron",
+        title: "",
+        characteristics: ["item"],
+        text: ["~~RUBY LIGHT~~ ↷ - Chosen character gets +1 ※ this turn."],
+        flavor: '"Leave fear behind\n-Inscription"',
+        type: "item",
+        inkwell: true,
+        color: "ruby",
+        cost: 1,
+        strength: 0,
+        willpower: 0,
+        lore: 0,
+        abilities: [
+            {
+                type: "user-initiated",
+                actionCheck: (gamestate, thisCard) =>
+                    !!baseAbilityCheck(gamestate, thisCard),
+                name: "STEEL LIGHT",
+                prompt: "Choose a character.",
+                options: {
+                    player: "self",
+                    zone: "field",
+                    match: { type: "character" },
+                },
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
+                        return { ...gameState };
+                    }
+
+                    return updateCardInState(gameState, {
+                        ...selectedOption,
+                        modifiers: [
+                            ...selectedOption.modifiers,
+                            {
+                                type: "challenge",
+                                duration: "until_end_of_turn",
+                                stat: "willpower",
+                                value: 1,
+                                turnApplied: gameState.turn,
+                                hasTriggered: false,
+                            },
+                        ],
+                    });
+                },
+            },
+        ],
+        illustrator: "Dustin Panzino",
+        language: "EN",
+        modifiers: [],
+        number: 134,
+        rarity: "uncommon",
+        set: "TFC",
         staticAbilities: {
             challenger: { active: false },
             evasive: { active: false },

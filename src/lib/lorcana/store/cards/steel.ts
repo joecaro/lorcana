@@ -1,6 +1,8 @@
 import { BaseCard } from "../../types/game";
 import { damageCard, moveCardToZoneReturnState } from "../actions";
 import {
+    baseAbilityCheck,
+    createBodyguardText,
     createChallengerText,
     createResistText,
     getAttackerFieldCharacters,
@@ -365,6 +367,146 @@ const SteelCards: BaseCard[] = [
             resist: { active: false },
             sing: { active: true },
             bodyguard: { active: false },
+            reckless: { active: false },
+        },
+    },
+    {
+        slug: "rise-of-the-titans",
+        implemented: !0,
+        url: "/cards/rise-of-the-titans.jpg",
+        name: "Rise of the Titans",
+        title: "",
+        characteristics: ["action"],
+        type: "action",
+        text: ["Banish chosen location or item"],
+        flavor: "“Oh, we're in trouble, big trouble!”",
+        abilities: [
+            {
+                type: "user-initiated",
+                actionCheck: () => true,
+                name: "Banish chosen location or item",
+                prompt: "Choose a location or item to banish.",
+                options: {
+                    player: "opponent",
+                    zone: "field",
+                    match: { type: "item" },
+                },
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
+                        return { ...gameState };
+                    }
+
+                    return moveCardToZoneReturnState(
+                        gameState,
+                        "field",
+                        "discard",
+                        selectedOption
+                    );
+                },
+            },
+        ],
+        color: "steel",
+        cost: 3,
+        inkwell: true,
+        illustrator: "Nicalo Saviori",
+        language: "EN",
+        lore: 0,
+        modifiers: [],
+        number: 198,
+        rarity: "uncommon",
+        set: "ITI",
+        staticAbilities: {
+            challenger: { active: false },
+            evasive: { active: false },
+            resist: { active: false },
+            sing: { active: false },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+        strength: 0,
+        willpower: 0,
+    },
+    {
+        slug: "steel-chromicron",
+        implemented: !0,
+        url: "/cards/steel-chromicron.jpg",
+        name: "STEEL CHROMICRON",
+        title: "",
+        characteristics: ["item"],
+        type: "item",
+        text: ["~~STEEL LIGHT~~ ↷ - Deal 1 damage to chosen character."],
+        flavor: "“Oh, we're in trouble, big trouble!”",
+        abilities: [
+            {
+                type: "user-initiated",
+                actionCheck: (gamestate, thisCard) =>
+                    !!baseAbilityCheck(gamestate, thisCard),
+                name: "STEEL LIGHT",
+                prompt: "Choose a character to damage.",
+                options: {
+                    player: "opponent",
+                    zone: "field",
+                    match: { type: "character" },
+                },
+                callback: ({ gameState, selectedOption }) => {
+                    if (!selectedOption) {
+                        return { ...gameState };
+                    }
+
+                    return damageCard(gameState, selectedOption, 1);
+                },
+            },
+        ],
+        color: "steel",
+        cost: 6,
+        inkwell: true,
+        illustrator: "Dustin Panzino",
+        language: "EN",
+        lore: 0,
+        modifiers: [],
+        number: 202,
+        rarity: "uncommon",
+        set: "ITI",
+        staticAbilities: {
+            challenger: { active: false },
+            evasive: { active: false },
+            resist: { active: false },
+            sing: { active: false },
+            bodyguard: { active: false },
+            reckless: { active: false },
+        },
+        strength: 0,
+        willpower: 0,
+    },
+    {
+        slug: "hercules-beloved-hero",
+        implemented: true,
+        url: "/cards/hercules-beloved-hero.jpg",
+        name: "Hercules",
+        title: "Beloved Hero",
+        characteristics: ["storyborn", "hero", "prince"],
+        text: [createBodyguardText(), createResistText(1)],
+        type: "character",
+        abilities: [],
+        flavor: "",
+        inkwell: true,
+        color: "steel",
+        cost: 6,
+        strength: 5,
+        willpower: 6,
+        lore: 1,
+        language: "EN",
+        illustrator: "Leonardo Giammichele",
+        number: 180,
+        set: "ITI",
+        rarity: "rare",
+        modifiers: [],
+        staticAbilities: {
+            challenger: { active: false },
+            evasive: { active: false },
+            resist: { active: true, value: 1 },
+            sing: { active: true },
+            bodyguard: { active: true },
             reckless: { active: false },
         },
     },

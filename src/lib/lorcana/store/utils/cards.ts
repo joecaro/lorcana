@@ -18,6 +18,10 @@ export function createResistText(num: number) {
     return `**Resist +${num}**: (Damage dealt to this character is reduced by 1).`;
 }
 
+export function createBodyguardText() {
+    return `**Bodyguard**: (this character may enter play exerted. An opposing character who challenges one of your characters must choose one with bodyguard if able.).`;
+}
+
 export const evasiveText = `**Evasive**: This character cannot be challenged.`;
 
 export function create(card: BaseCard, ownerId: string): Card {
